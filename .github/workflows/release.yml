@@ -44,12 +44,11 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           TITLE="Omadash ${TAG#v}"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/* --clobber
+            gh release upload "$TAG" dist/*.tar.gz dist/*.sha256 --clobber
             gh release edit "$TAG" --title "$TITLE" --notes-file docs/RELEASE.md --latest
           else
-            gh release create "$TAG" dist/* \
+            gh release create "$TAG" dist/*.tar.gz dist/*.sha256 \
               --title "$TITLE" \
               --notes-file docs/RELEASE.md \
-              --latest \
-              --verify-tag
+              --latest
           fi

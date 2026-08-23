@@ -38,6 +38,7 @@ Source and docs: https://github.com/cpenzini/omadash
 EOF
 
 tar -C "$ROOT/dist" -czf "$OUT" "$NAME"
+rm -rf "$STAGE"
 if command -v sha256sum >/dev/null 2>&1; then
   (cd "$ROOT/dist" && sha256sum "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256")
 elif command -v shasum >/dev/null 2>&1; then
