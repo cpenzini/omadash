@@ -72,8 +72,8 @@ echo "→ flutter pub get"
 flutter pub get
 
 if [[ "$INSTALL" -eq 1 ]]; then
-  echo "→ flutter build linux --release"
-  flutter build linux --release
+  echo "→ flutter build linux --release --no-tree-shake-icons"
+  flutter build linux --release --no-tree-shake-icons
   BUNDLE="$(pwd)/build/linux/x64/release/bundle"
   BIN="$HOME/.local/bin"
   APP="$HOME/.local/share/applications"
@@ -97,6 +97,6 @@ fi
 
 echo
 echo "Done. Build with:"
-echo "  flutter build linux --release"
+echo "  flutter build linux --release --no-tree-shake-icons"
 echo "Binary:"
 echo "  build/linux/x64/release/bundle/omadash"

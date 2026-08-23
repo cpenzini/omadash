@@ -106,7 +106,7 @@ cd omadash/native
 chmod +x tool/bootstrap.sh
 ./tool/bootstrap.sh
 flutter test
-flutter build linux --release
+flutter build linux --release --no-tree-shake-icons
 ./tool/package.sh
 ```
 

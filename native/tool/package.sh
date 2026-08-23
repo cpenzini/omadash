@@ -10,7 +10,7 @@ STAGE="$ROOT/dist/$NAME"
 OUT="$ROOT/dist/${NAME}.tar.gz"
 
 if [[ ! -x "$BUNDLE/omadash" ]]; then
-  echo "Build first: flutter build linux --release" >&2
+  echo "Build first: flutter build linux --release --no-tree-shake-icons" >&2
   echo "Expected $BUNDLE/omadash" >&2
   exit 1
 fi

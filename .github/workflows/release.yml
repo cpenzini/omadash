@@ -29,7 +29,7 @@ jobs:
           chmod +x tool/bootstrap.sh tool/package.sh packaging/install.sh
           ./tool/bootstrap.sh
           flutter test test/store_test.dart
-          flutter build linux --release
+          flutter build linux --release --no-tree-shake-icons
           ./tool/package.sh
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

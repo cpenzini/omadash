@@ -75,7 +75,7 @@ git clone https://github.com/cpenzini/omadash.git
 cd omadash/native
 chmod +x tool/bootstrap.sh
 ./tool/bootstrap.sh
-flutter build linux --release
+flutter build linux --release --no-tree-shake-icons
 ./tool/package.sh
 ```
 
