@@ -1,7 +1,5 @@
 /** People you've mailed, for compose autocomplete. */
 import { counterpart } from "./format";
-import { buildPersonalSeed, buildSeed } from "./seed";
-import { INITIAL_THREADS } from "./store-core";
 import type { Person, Thread } from "./types";
 
 export function formatAddress(p: Person): string {
@@ -48,16 +46,11 @@ export function collectContacts(threads: Thread[], meEmail: string): Person[] {
 
 export function contactPool(
   threads: Thread[],
-  source: "demo" | "imap",
-  activeBoxId: string | null,
+  _source: "demo" | "imap",
+  _activeBoxId: string | null,
   meEmail: string,
 ): Person[] {
-  const extra: Thread[] =
-    source === "demo" ? (activeBoxId === "demo-2" ? INITIAL_THREADS : buildPersonalSeed()) : [];
-  const extra2: Thread[] = source === "demo" ? buildSeed() : [];
-  const seen = new Set(threads.map((t) => t.id));
-  const merged = [...threads, ...extra.filter((t) => !seen.has(t.id)), ...extra2.filter((t) => !seen.has(t.id) && !extra.some((x) => x.id === t.id))];
-  return collectContacts(merged, meEmail);
+  return collectContacts(threads, meEmail);
 }
 
 export function lastToken(raw: string): { head: string; query: string } {

@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/app";
 import { THEME_BOOT, useThemeStore } from "@/lib/theme";
+import { usePrefsStore } from "@/lib/mail/prefs";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -36,11 +37,13 @@ export const Route = createRootRoute({
 
 function RootShell() {
   const hydrate = useThemeStore((s) => s.hydrate);
+  const hydratePrefs = usePrefsStore((s) => s.hydrate);
   const id = useThemeStore((s) => s.id);
 
   useLayoutEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydratePrefs();
+  }, [hydrate, hydratePrefs]);
 
   useEffect(() => {
     if (id !== "auto") return;

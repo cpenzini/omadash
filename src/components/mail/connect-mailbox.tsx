@@ -106,7 +106,7 @@ export function ConnectMailbox() {
       if (status.connected) applyMailbox(status);
       else useDemo();
       setOpen(false);
-      toast(status.connected ? "Mailbox removed" : "Back on the demo inbox");
+      toast(status.connected ? "Mailbox removed" : "Mailbox disconnected");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not disconnect");
     } finally {

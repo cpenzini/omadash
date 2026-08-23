@@ -1,6 +1,6 @@
 # Contributing to Omadash
 
-Omadash exists so people on Omarchy can own a fast mail client. The useful patches are the ones you needed this morning.
+Omadash exists so people on Omarchy can own a fast mail and calendar client. The useful patches are the ones you needed this morning.
 
 ## Ground rules
 
@@ -9,6 +9,7 @@ Omadash exists so people on Omarchy can own a fast mail client. The useful patch
 - IMAP writes are sacred. Optimistic UI must still undo and still hit the server.
 - Match the current tone: dense, quiet, no decoration for its own sake.
 - One idea per pull request.
+- Empty until connect. Do not seed a sample inbox or a sample week.
 
 ## First patches we want
 
@@ -19,7 +20,7 @@ These are the smallest useful forks. Each is documented in [docs/EXTENDING.md](d
 3. A snippet you actually type.
 4. A key that is missing from `?`.
 5. HTML sanitizer cases that still leak a tracker.
-6. A calendar pin for a thread that already has a time in the body.
+6. A phrasing `N` (file on calendar) still misses — extend [`dates.ts`](src/lib/mail/dates.ts).
 7. A CalDAV preset (mailbox.org, a university DAV).
 8. A default inbox rule (a domain that always belongs in Other).
 
@@ -31,12 +32,14 @@ npm run dev
 npm run typecheck
 ```
 
-Hit `?` and use the demo inbox. Connect a throwaway mailbox before you touch `imap.server.ts`. Train a thread with `Shift+O` / `Shift+I` before you edit `rules.ts`.
+Hit `?` after connecting a throwaway mailbox — the client stays empty until you do. Connect before you touch `imap.server.ts`. Train a thread with `Shift+O` / `Shift+I` before you edit `rules.ts`. File a date with `N` before you edit `dates.ts`.
 
 ## Code shape
 
 - Actions live in `src/lib/mail/store.ts`. Keys live in `src/lib/mail/hotkeys.ts`. If you add one, add the other, then add a row to `shortcut-sheet.tsx`.
 - Split rules live in `src/lib/mail/rules.ts`. First match wins; do not rewrite stored `focused`.
+- Layout and settings live in `src/lib/mail/prefs.ts` and `src/components/mail/settings.tsx`.
+- Filing a thread onto a calendar lives in `src/lib/mail/dates.ts` and `src/components/mail/file-event.tsx`.
 - Server functions in `mailbox.ts` always go through `authMiddleware` and query by `context.userId`. Never a client-sent user id.
 - Themes are CSS variables, not one-off class names.
 - Do not introduce a plugin runtime. Edit the files.

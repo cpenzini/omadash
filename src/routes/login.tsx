@@ -65,7 +65,7 @@ function Login() {
             }}
             className="hover:text-fg"
           >
-            Back to the demo inbox
+            Back to Omadash
           </Link>
         </p>
       </div>

@@ -5,7 +5,6 @@ import { Kbd } from "./kbd";
 
 export function ThemePicker() {
   const open = useThemeStore((s) => s.open);
-  const current = useThemeStore((s) => s.id);
   const setOpen = useThemeStore((s) => s.setOpen);
   const setTheme = useThemeStore((s) => s.setTheme);
 
@@ -42,22 +41,31 @@ export function ThemePicker() {
           <h2 className="text-sm font-medium text-fg">Omarchy theme</h2>
           <Kbd>Esc</Kbd>
         </div>
-        <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-          {THEMES.map((t, i) => (
-            <li key={t.id}>
-              <ThemeButton
-                id={t.id}
-                label={t.label}
-                hint={t.hint}
-                index={i + 1}
-                active={current === t.id}
-                onPick={setTheme}
-              />
-            </li>
-          ))}
-        </ul>
+        <ThemeGrid showKeys />
       </div>
     </div>
+  );
+}
+
+export function ThemeGrid({ showKeys = false }: { showKeys?: boolean }) {
+  const current = useThemeStore((s) => s.id);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  return (
+    <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+      {THEMES.map((t, i) => (
+        <li key={t.id}>
+          <ThemeButton
+            id={t.id}
+            label={t.label}
+            hint={t.hint}
+            index={i + 1}
+            active={current === t.id}
+            showKey={showKeys}
+            onPick={setTheme}
+          />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -67,6 +75,7 @@ function ThemeButton({
   hint,
   index,
   active,
+  showKey,
   onPick,
 }: {
   id: ThemeId;
@@ -74,6 +83,7 @@ function ThemeButton({
   hint: string;
   index: number;
   active: boolean;
+  showKey?: boolean;
   onPick: (id: ThemeId) => void;
 }) {
   return (
@@ -95,7 +105,7 @@ function ThemeButton({
         <span className="block text-mail text-fg">{label}</span>
         <span className="block text-micro text-subtle">{hint}</span>
       </span>
-      <Kbd>{index === 10 ? "0" : String(index)}</Kbd>
+      {showKey && <Kbd>{index === 10 ? "0" : String(index)}</Kbd>}
     </button>
   );
 }

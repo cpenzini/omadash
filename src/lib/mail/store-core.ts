@@ -71,6 +71,8 @@ export interface MailState {
   labelOpen: boolean;
   sendLaterOpen: boolean;
   rulesOpen: boolean;
+  fileEventOpen: boolean;
+  fileEventPrefill: { start: string; end: string; text?: string } | null;
   onboarding: boolean;
   pendingG: boolean;
   undoStack: UndoItem[];
@@ -84,6 +86,7 @@ export interface MailState {
   mailboxProvider: string | null;
   boxes: MailboxInfo[];
   activeBoxId: string | null;
+  boxCache: Record<string, Thread[]>;
   omarchyOpen: boolean;
   summaryById: Record<string, string>;
   summarizingId: string | null;
@@ -95,9 +98,11 @@ export interface MailState {
   setConnectOpen: (open: boolean) => void;
   setSyncing: (v: boolean) => void;
   setOmarchyOpen: (open: boolean) => void;
-  switchBox: (slot: MailSlot) => void;
+  switchBox: (slot: MailSlot, selectId?: string) => void;
+  cycleSpace: (dir?: 1 | -1) => void;
+  cacheBox: (boxId: string, threads: Thread[]) => void;
 
-  select: (id: string | null) => void;
+  select: (id: string | null, opts?: { open?: boolean }) => void;
   move: (delta: number) => void;
   setFolder: (folder: Folder) => void;
   setSplit: (split: Split) => void;
@@ -109,6 +114,7 @@ export interface MailState {
   setLabelOpen: (open: boolean) => void;
   setSendLaterOpen: (open: boolean) => void;
   setRulesOpen: (open: boolean) => void;
+  setFileEventOpen: (open: boolean, prefill?: { start: string; end: string; text?: string } | null) => void;
   trainSplit: (split: Split) => void;
   setPendingG: (v: boolean) => void;
   dismissOnboarding: () => void;
@@ -124,7 +130,7 @@ export interface MailState {
   snooze: (until: Date, id?: string) => void;
   restoreSnoozes: () => void;
   restoreFollowUps: () => string[];
-  restoreScheduled: () => number;
+  restoreScheduled: () => { count: number; held: number };
   setLabel: (label: string, id?: string) => void;
   undo: () => string | null;
   summarize: () => Promise<void>;
@@ -305,6 +311,19 @@ export function actionIds(state: { checkedIds: string[]; selectedId: string | nu
   if (id) return [id];
   if (state.checkedIds.length) return [...state.checkedIds];
   return state.selectedId ? [state.selectedId] : [];
+}
+
+export function isHoldingSend(t: Thread, now = Date.now()): boolean {
+  if (!t.sendAt || t.folder !== "sent") return false;
+  return new Date(t.sendAt).getTime() > now;
+}
+
+export function folderOf(t: Thread): Folder {
+  if (t.folder === "inbox") return "inbox";
+  if (t.folder === "sent" || t.folder === "drafts" || t.folder === "snoozed" || t.folder === "done" || t.folder === "trash") {
+    return t.folder;
+  }
+  return "inbox";
 }
 
 const SEEDED = buildSeed();

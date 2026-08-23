@@ -3,6 +3,7 @@
  * Document every new binding in shortcut-sheet.tsx.
  */
 import { useThemeStore } from "@/lib/theme";
+import { applyMailLayout, usePrefsStore } from "./prefs";
 import { useCalendarStore } from "./calendar";
 import type { MailState } from "./store";
 
@@ -14,6 +15,14 @@ function typingInField(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+}
+
+function isCycleKey(e: KeyboardEvent) {
+  return e.key === "`" || e.key === "~" || e.code === "Backquote";
+}
+
+function cycleDir(e: KeyboardEvent): 1 | -1 {
+  return e.shiftKey || e.key === "~" ? -1 : 1;
 }
 
 export function handleHotkey(
@@ -65,12 +74,20 @@ export function handleHotkey(
       store.setSendLaterOpen(false);
       return true;
     }
+    if (store.fileEventOpen) {
+      store.setFileEventOpen(false);
+      return true;
+    }
     if (store.connectOpen) {
       store.setConnectOpen(false);
       return true;
     }
     if (useThemeStore.getState().open) {
       useThemeStore.getState().setOpen(false);
+      return true;
+    }
+    if (usePrefsStore.getState().settingsOpen) {
+      usePrefsStore.getState().setSettingsOpen(false);
       return true;
     }
     if (store.omarchyOpen) {
@@ -102,15 +119,100 @@ export function handleHotkey(
     e.preventDefault();
     void store.send().then((err) => {
       if (err) toast(err);
-      else toast("Sent · U to undo");
+      else toast("Sending · U to undo");
     });
     return true;
   }
 
   if (inField || store.commandOpen || store.compose || store.connectOpen) return false;
   if (calConnect) return true;
+  const prefs = usePrefsStore.getState();
+  if (prefs.settingsOpen) {
+    if (key === ",") {
+      prefs.setSettingsOpen(false);
+      return true;
+    }
+    return true;
+  }
   if (useThemeStore.getState().open || store.omarchyOpen) return true;
-  if (store.calendarOpen || store.labelOpen || store.sendLaterOpen || store.rulesOpen) return true;
+  if (store.calendarOpen) {
+    if (store.pendingG) {
+      store.setPendingG(false);
+      if (lower === "i") {
+        store.setCalendarOpen(false);
+        store.setFolder("inbox");
+      } else if (lower === "s") {
+        store.setCalendarOpen(false);
+        store.setFolder("starred");
+      } else if (lower === "w") {
+        store.setCalendarOpen(false);
+        store.setFolder("waiting");
+      } else if (lower === "d") {
+        store.setCalendarOpen(false);
+        store.setFolder("drafts");
+      } else if (lower === "t") {
+        store.setCalendarOpen(false);
+        store.setFolder("sent");
+      } else if (lower === "h") {
+        store.setCalendarOpen(false);
+        store.setFolder("snoozed");
+      } else if (lower === "e") {
+        store.setCalendarOpen(false);
+        store.setFolder("done");
+      } else if (key === "#") {
+        store.setCalendarOpen(false);
+        store.setFolder("trash");
+      } else if (lower === "a") usePrefsStore.getState().setSettingsOpen(true);
+      else if (lower === "c") {
+        /* already here */
+      } else if (lower === "1") store.switchBox(1);
+      else if (lower === "2") store.switchBox(2);
+      else if (lower === "3") store.setCalendarOpen(true);
+      else if (isCycleKey(e)) store.cycleSpace(cycleDir(e));
+      return true;
+    }
+    if (lower === "g") {
+      store.setPendingG(true);
+      window.setTimeout(() => store.setPendingG(false), 1200);
+      return true;
+    }
+    if (lower === "1") {
+      store.switchBox(1);
+      return true;
+    }
+    if (lower === "2") {
+      store.switchBox(2);
+      return true;
+    }
+    if (lower === "3") {
+      store.setCalendarOpen(true);
+      return true;
+    }
+    if (isCycleKey(e)) {
+      store.cycleSpace(cycleDir(e));
+      return true;
+    }
+    if (isQuestionKey(e)) {
+      store.setShortcutsOpen(!store.shortcutsOpen);
+      return true;
+    }
+    if (key === ",") {
+      usePrefsStore.getState().setSettingsOpen(true);
+      return true;
+    }
+    if (key === "\\") {
+      const next = usePrefsStore.getState().layout === "two" ? "three" : "two";
+      applyMailLayout(next, store);
+      toast(next === "two" ? "Two panes" : "Three panes");
+      return true;
+    }
+    if (key === "/") {
+      store.setCommandOpen(true);
+      return true;
+    }
+    return true;
+  }
+  if (store.labelOpen || store.sendLaterOpen || store.rulesOpen || store.fileEventOpen) return true;
   if (store.shortcutsOpen) {
     if (isQuestionKey(e)) {
       store.setShortcutsOpen(false);
@@ -129,10 +231,12 @@ export function handleHotkey(
     else if (lower === "h") store.setFolder("snoozed");
     else if (lower === "e") store.setFolder("done");
     else if (key === "#") store.setFolder("trash");
-    else if (lower === "a") useThemeStore.getState().setOpen(true);
+    else if (lower === "a") usePrefsStore.getState().setSettingsOpen(true);
     else if (lower === "c") store.setCalendarOpen(true);
     else if (lower === "1") store.switchBox(1);
     else if (lower === "2") store.switchBox(2);
+    else if (lower === "3") store.setCalendarOpen(true);
+    else if (isCycleKey(e)) store.cycleSpace(cycleDir(e));
     else if (lower === "g") store.move(-999);
     return true;
   }
@@ -140,6 +244,23 @@ export function handleHotkey(
   if (lower === "g") {
     store.setPendingG(true);
     window.setTimeout(() => store.setPendingG(false), 1200);
+    return true;
+  }
+
+  if (lower === "1") {
+    store.switchBox(1);
+    return true;
+  }
+  if (lower === "2") {
+    store.switchBox(2);
+    return true;
+  }
+  if (lower === "3") {
+    store.setCalendarOpen(true);
+    return true;
+  }
+  if (isCycleKey(e)) {
+    store.cycleSpace(cycleDir(e));
     return true;
   }
 
@@ -156,7 +277,7 @@ export function handleHotkey(
     return true;
   }
   if (key === "Enter" || (lower === "o" && !e.shiftKey)) {
-    if (store.selectedId) store.setMobilePane("read");
+    if (store.selectedId) store.select(store.selectedId, { open: true });
     return true;
   }
   if (lower === "e") {
@@ -216,13 +337,29 @@ export function handleHotkey(
     store.setSnoozeOpen(true);
     return true;
   }
+  if (lower === "n") {
+    if (!store.selectedId) {
+      toast("Select a thread");
+      return true;
+    }
+    store.select(store.selectedId, { open: true });
+    store.setFileEventOpen(true);
+    return true;
+  }
   if (isQuestionKey(e)) {
     store.setShortcutsOpen(!store.shortcutsOpen);
     return true;
   }
   if (key === ",") {
     e.preventDefault();
-    useThemeStore.getState().setOpen(true);
+    usePrefsStore.getState().setSettingsOpen(true);
+    return true;
+  }
+  if (key === "\\") {
+    e.preventDefault();
+    const next = usePrefsStore.getState().layout === "two" ? "three" : "two";
+    applyMailLayout(next, store);
+    toast(next === "two" ? "Two panes" : "Three panes");
     return true;
   }
   if (key === "/") {

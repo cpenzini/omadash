@@ -5,8 +5,9 @@ import { addMonths, subMonths } from "date-fns";
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
-import { calPresetById, type CalProviderId } from "./cal-presets";
+import { calPresetById, isCalColor, nextCalColor, type CalProviderId } from "./cal-presets";
 import type { CalEvent, CalendarFeed } from "./calendar";
+import { readThreadId } from "./dates";
 
 type AccountRow = {
   id: string;
@@ -64,6 +65,7 @@ function toEvent(row: EventRow): CalEvent {
     where: row.location || undefined,
     description: row.description || undefined,
     rrule: row.rrule || undefined,
+    threadId: readThreadId(row.description),
     who: row.calendar_name || "Calendar",
     box: 1,
     source: sourceOf(row),
@@ -240,6 +242,7 @@ export const connectCalDav = createServerFn({ method: "POST" })
     password: string;
     caldavUrl?: string;
     label?: string;
+    color?: string;
   }) => {
     const username = input.username.trim();
     if (!username) throw new Error("Username or email is required");
@@ -257,10 +260,12 @@ export const connectCalDav = createServerFn({ method: "POST" })
     const id = nid("ca");
     const cipher = sealSecret(data.password);
     const label = data.label?.trim() || preset.label;
+    const existing = await listAccounts(context.userId);
+    const color = data.color && isCalColor(data.color) ? data.color : nextCalColor(existing.map((a) => a.color));
     const sql = await getSql();
     await sql`
       insert into cal_accounts (id, user_id, provider, label, username, caldav_url, password_cipher, color)
-      values (${id}, ${context.userId}, ${data.provider}, ${label}, ${data.username}, ${caldavUrl}, ${cipher}, ${preset.color})
+      values (${id}, ${context.userId}, ${data.provider}, ${label}, ${data.username}, ${caldavUrl}, ${cipher}, ${color})
     `;
     const account = (await listAccounts(context.userId)).find((a) => a.id === id);
     if (account) await syncAccount(context.userId, account);
@@ -269,10 +274,10 @@ export const connectCalDav = createServerFn({ method: "POST" })
 
 export const connectIcs = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((input: { url: string; label?: string; provider?: CalProviderId }) => {
+  .validator((input: { url: string; label?: string; provider?: CalProviderId; color?: string }) => {
     const url = input.url.trim();
     if (!/^https?:\/\//i.test(url)) throw new Error("ICS URL must start with https://");
-    return { url, label: input.label?.trim(), provider: input.provider ?? "ics" };
+    return { url, label: input.label?.trim(), provider: input.provider ?? "ics", color: input.color };
   })
   .handler(async ({ context, data }): Promise<CalendarFeed> => {
     const { fetchIcsUrl } = await import("./caldav.server");
@@ -280,10 +285,12 @@ export const connectIcs = createServerFn({ method: "POST" })
     await fetchIcsUrl(data.url);
     const id = nid("ca");
     const preset = calPresetById(data.provider);
+    const existing = await listAccounts(context.userId);
+    const color = data.color && isCalColor(data.color) ? data.color : nextCalColor(existing.map((a) => a.color));
     const sql = await getSql();
     await sql`
       insert into cal_accounts (id, user_id, provider, label, ics_url, color)
-      values (${id}, ${context.userId}, ${data.provider}, ${data.label || preset.label}, ${data.url}, ${preset.color})
+      values (${id}, ${context.userId}, ${data.provider}, ${data.label || preset.label}, ${data.url}, ${color})
     `;
     const account = (await listAccounts(context.userId)).find((a) => a.id === id);
     if (account) await syncAccount(context.userId, account);
@@ -327,9 +334,11 @@ export async function finishGoogleOAuth(opts: {
       where user_id = ${opts.userId} and id = ${id}
     `;
   } else {
+    const used = (await listAccounts(opts.userId)).map((a) => a.color);
+    const color = nextCalColor(used);
     await sql`
       insert into cal_accounts (id, user_id, provider, label, refresh_cipher, color)
-      values (${id}, ${opts.userId}, ${"google"}, ${profile.email || "Google"}, ${cipher}, ${"warn"})
+      values (${id}, ${opts.userId}, ${"google"}, ${profile.email || "Google"}, ${cipher}, ${color})
     `;
   }
   try {
@@ -366,6 +375,22 @@ export const disconnectCalendar = createServerFn({ method: "POST" })
     return toFeed(await listAccounts(context.userId), await loadEvents(context.userId), googleOAuthEnabled());
   });
 
+export const setCalendarColor = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { accountId: string; color: string }) => {
+    if (!isCalColor(input.color)) throw new Error("Unknown calendar color");
+    return { accountId: input.accountId, color: input.color };
+  })
+  .handler(async ({ context, data }): Promise<CalendarFeed> => {
+    const { googleOAuthEnabled } = await import("./google-cal.server");
+    const sql = await getSql();
+    await sql`
+      update cal_accounts set color = ${data.color}
+      where user_id = ${context.userId} and id = ${data.accountId}
+    `;
+    return toFeed(await listAccounts(context.userId), await loadEvents(context.userId), googleOAuthEnabled());
+  });
+
 export const saveRemoteEvent = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: {
@@ -375,6 +400,7 @@ export const saveRemoteEvent = createServerFn({ method: "POST" })
     start: string;
     end: string;
     where?: string;
+    description?: string;
   }) => {
     if (!input.title.trim()) throw new Error("Title is required");
     return { ...input, title: input.title.trim() };
@@ -393,6 +419,7 @@ export const saveRemoteEvent = createServerFn({ method: "POST" })
       start,
       end,
       where: data.where,
+      description: data.description,
     };
     if (account.provider === "google" && account.refresh_cipher) {
       const { openSecret } = await import("./crypto.server");

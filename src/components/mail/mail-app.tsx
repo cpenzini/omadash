@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Inbox, Keyboard, Menu, PenSquare, Search, Star } from "lucide-react";
+import { CalendarDays, Inbox, Keyboard, Menu, PenSquare, Search, Settings2 } from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Toaster, toast } from "sonner";
 import { APP_NAME } from "@/lib/app";
 import { handleHotkey } from "@/lib/mail/hotkeys";
-import { getMailbox, syncMailbox } from "@/lib/mail/mailbox";
+import { getMailbox, peekMailboxes, syncMailbox } from "@/lib/mail/mailbox";
 import { getCalendars, startGoogleOAuth } from "@/lib/mail/calendar-sync";
-import { useCalendarStore } from "@/lib/mail/calendar";
-import { notifyNewMail } from "@/lib/mail/notify";
+import { mergeEvents, useCalendarStore, visibleEvents } from "@/lib/mail/calendar";
+import { notifyNewMail, notifyUpcoming, requestMailNotifications } from "@/lib/mail/notify";
 import { useRulesStore } from "@/lib/mail/rules";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useMailStore } from "@/lib/mail/store";
+import { usePrefsStore } from "@/lib/mail/prefs";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./command-palette";
 import { Compose } from "./compose";
@@ -27,6 +28,8 @@ import { Sidebar } from "./sidebar";
 import { SnoozePicker } from "./snooze-picker";
 import { StatusBar } from "./status-bar";
 import { ThemePicker } from "./theme-picker";
+import { Settings } from "./settings";
+import { FileEvent } from "./file-event";
 import { OmarchyInstall } from "./omarchy-install";
 import { ThreadList } from "./thread-list";
 import { cn } from "@/lib/utils";
@@ -54,11 +57,14 @@ export function MailApp() {
   const setCommandOpen = useMailStore((s) => s.setCommandOpen);
   const setShortcutsOpen = useMailStore((s) => s.setShortcutsOpen);
   const setSplit = useMailStore((s) => s.setSplit);
-  const setFolder = useMailStore((s) => s.setFolder);
   const setMobilePane = useMailStore((s) => s.setMobilePane);
   const setConnectOpen = useMailStore((s) => s.setConnectOpen);
   const setOmarchyOpen = useMailStore((s) => s.setOmarchyOpen);
   const setCalendarOpen = useMailStore((s) => s.setCalendarOpen);
+  const calendarOpen = useMailStore((s) => s.calendarOpen);
+  const selectedId = useMailStore((s) => s.selectedId);
+  const layout = usePrefsStore((s) => s.layout);
+  const setSettingsOpen = usePrefsStore((s) => s.setSettingsOpen);
   const applyMailbox = useMailStore((s) => s.applyMailbox);
   const useDemo = useMailStore((s) => s.useDemo);
   const setSyncing = useMailStore((s) => s.setSyncing);
@@ -78,6 +84,7 @@ export function MailApp() {
   useEffect(() => {
     hydrate();
     useRulesStore.getState().hydrate();
+    usePrefsStore.getState().hydrate();
   }, [hydrate]);
 
   useEffect(() => {
@@ -196,7 +203,7 @@ export function MailApp() {
           }
         }
       } catch {
-        /* signed out or network — stay on demo */
+        /* signed out or network — stay empty */
       } finally {
         if (!cancelled) setSyncing(false);
       }
@@ -221,16 +228,34 @@ export function MailApp() {
       for (const name of bounced) toast(`${name} has not replied · bounced back`);
     }
     const sent = restoreScheduled();
-    if (sent && !useMailStore.getState().onboarding) {
-      toast(sent === 1 ? "Scheduled message sent" : `${sent} scheduled messages sent`);
+    if (sent.count && !useMailStore.getState().onboarding) {
+      toast(
+        sent.held
+          ? sent.count === 1
+            ? "Sent"
+            : `${sent.count} sent`
+          : sent.count === 1
+            ? "Scheduled message sent"
+            : `${sent.count} scheduled messages sent`,
+      );
     }
     const id = window.setInterval(() => {
       restoreSnoozes();
       const more = useMailStore.getState().restoreFollowUps();
       for (const name of more) toast(`${name} has not replied · bounced back`);
       const n = useMailStore.getState().restoreScheduled();
-      if (n) toast(n === 1 ? "Scheduled message sent" : `${n} scheduled messages sent`);
-    }, 30_000);
+      if (n.count) {
+        toast(
+          n.held
+            ? n.count === 1
+              ? "Sent"
+              : `${n.count} sent`
+            : n.count === 1
+              ? "Scheduled message sent"
+              : `${n.count} scheduled messages sent`,
+        );
+      }
+    }, 1_000);
     return () => window.clearInterval(id);
   }, [hydrated, restoreSnoozes, restoreFollowUps, restoreScheduled]);
 
@@ -280,17 +305,78 @@ export function MailApp() {
 
   useEffect(() => {
     if (source !== "imap" || !user) return;
-    const tick = window.setInterval(() => {
-      const boxId = useMailStore.getState().activeBoxId ?? undefined;
-      void syncMailbox({ data: { boxId } }).then((fresh) => {
-        if (!fresh.connected) return;
-        const prev = useMailStore.getState().threads;
-        applyMailbox(fresh);
-        notifyNewMail(prev, fresh.threads);
-      });
-    }, 90_000);
-    return () => window.clearInterval(tick);
+    const lastPeek = new Map<string, string>();
+    let cancelled = false;
+    let timer: number | null = null;
+
+    async function tick() {
+      if (cancelled) return;
+      try {
+        const peeks = await peekMailboxes();
+        if (cancelled) return;
+        for (const peek of peeks) {
+          if (!peek.ok) continue;
+          const sig = `${peek.uidNext}:${peek.exists}:${peek.unseen}`;
+          const prevSig = lastPeek.get(peek.boxId);
+          lastPeek.set(peek.boxId, sig);
+          if (!prevSig || prevSig === sig) continue;
+          const fresh = await syncMailbox({ data: { boxId: peek.boxId } });
+          if (cancelled || !fresh.connected) continue;
+          const state = useMailStore.getState();
+          if (fresh.activeId === state.activeBoxId) {
+            const prev = state.threads;
+            applyMailbox(fresh);
+            notifyNewMail(prev, fresh.threads);
+          } else {
+            const prev = state.boxCache[peek.boxId] ?? [];
+            state.cacheBox(peek.boxId, fresh.threads);
+            notifyNewMail(prev, fresh.threads);
+          }
+        }
+      } catch {
+        /* network */
+      }
+    }
+
+    function schedule() {
+      if (timer) window.clearTimeout(timer);
+      const ms = document.hidden ? 45_000 : 12_000;
+      timer = window.setTimeout(() => {
+        void tick().then(schedule);
+      }, ms);
+    }
+
+    void tick().then(schedule);
+    const onVis = () => {
+      if (!document.hidden) void tick();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [source, user?.id, applyMailbox]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    useCalendarStore.getState().hydrate();
+    const tick = () => {
+      const cal = useCalendarStore.getState();
+      if (cal.accounts.length === 0) return;
+      notifyUpcoming(visibleEvents(mergeEvents(cal.locals, cal.remote), cal.hidden));
+    };
+    tick();
+    const id = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(id);
+  }, [hydrated]);
+
+  useEffect(() => {
+    if (source === "imap") {
+      const prefs = usePrefsStore.getState();
+      if (prefs.notifyMail || prefs.notifyEvents) void requestMailNotifications();
+    }
+  }, [source]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
@@ -304,6 +390,9 @@ export function MailApp() {
         </Button>
         <Button size="icon-sm" onClick={() => setShortcutsOpen(true)} aria-label="Keyboard shortcuts">
           <Keyboard className="size-4" />
+        </Button>
+        <Button size="icon-sm" onClick={() => setSettingsOpen(true)} aria-label="Settings">
+          <Settings2 className="size-4" />
         </Button>
         <Button size="icon-sm" onClick={() => openCompose()} aria-label="Compose">
           <PenSquare className="size-4" />
@@ -328,19 +417,45 @@ export function MailApp() {
           </div>
         )}
 
-        <div className={cn("min-w-0 flex-1", mobilePane === "read" ? "hidden lg:flex" : "flex")}>
-          <ThreadList />
-        </div>
-        <div className={cn("min-w-0 flex-1", mobilePane === "list" ? "hidden lg:flex" : "flex")}>
-          <ReadingPane />
-        </div>
+        {calendarOpen ? (
+          <CalendarPanel />
+        ) : (
+          <>
+            {(layout === "three" || !(mobilePane === "read" && selectedId)) && (
+              <div
+                className={cn(
+                  "min-w-0 flex",
+                  layout === "two"
+                    ? "flex-1"
+                    : cn("flex-1 lg:w-96 lg:flex-none", mobilePane === "read" && "hidden lg:flex"),
+                )}
+              >
+                <ThreadList />
+              </div>
+            )}
+            {(layout === "three" || (mobilePane === "read" && selectedId)) && (
+              <div
+                className={cn(
+                  "min-w-0 flex-1 flex",
+                  layout === "three" && mobilePane === "list" && "hidden lg:flex",
+                )}
+              >
+                <ReadingPane />
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <nav className="flex h-14 shrink-0 items-center justify-around border-t border-border bg-panel md:hidden">
         <button
           type="button"
-          className="flex h-11 w-16 flex-col items-center justify-center gap-0.5 text-micro text-muted"
+          className={cn(
+            "flex h-11 w-16 flex-col items-center justify-center gap-0.5 text-micro",
+            !calendarOpen ? "text-fg" : "text-muted",
+          )}
           onClick={() => {
+            setCalendarOpen(false);
             setSplit("focused");
             setMobilePane("list");
           }}
@@ -350,14 +465,14 @@ export function MailApp() {
         </button>
         <button
           type="button"
-          className="flex h-11 w-16 flex-col items-center justify-center gap-0.5 text-micro text-muted"
-          onClick={() => {
-            setFolder("starred");
-            setMobilePane("list");
-          }}
+          className={cn(
+            "flex h-11 w-16 flex-col items-center justify-center gap-0.5 text-micro",
+            calendarOpen ? "text-fg" : "text-muted",
+          )}
+          onClick={() => setCalendarOpen(true)}
         >
-          <Star className="size-4" />
-          Starred
+          <CalendarDays className="size-4" />
+          Calendar
         </button>
         <button
           type="button"
@@ -382,14 +497,15 @@ export function MailApp() {
       <CommandPalette />
       <ShortcutSheet />
       <SnoozePicker />
+      <FileEvent />
       <SendLater />
-      <CalendarPanel />
       <ConnectCalendar />
       <LabelPicker />
       <RulesPanel />
       <Onboarding />
       <ConnectMailbox />
       <ThemePicker />
+      <Settings />
       <OmarchyInstall />
       <Toaster
         theme={isLightTheme(resolvedTheme) ? "light" : "dark"}

@@ -5,7 +5,6 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import { summarizeThread } from "./ai";
 import { SNIPPETS } from "./snippets";
-import { buildPersonalSeed } from "./seed";
 import { counterpart, dataUrlPayload, localNotes, parseAddressList, snippetOf } from "./format";
 import { sendMail } from "./mailbox";
 import { useRulesStore } from "./rules";
@@ -19,16 +18,14 @@ import {
 } from "./types";
 import {
   ACTIVE_KEY,
-  DEMO_BOXES,
-  INITIAL_SELECTED,
-  INITIAL_THREADS,
+  IMAP_KEY,
   ONBOARD_KEY,
-  STORAGE_KEY,
   VERSION,
   actionIds,
   commandFor,
   filterVisible,
   fireImap,
+  folderOf,
   latestDate,
   loadPersistedThreads,
   mergeRemote,
@@ -37,11 +34,30 @@ import {
   snapshot,
   type MailState,
 } from "./store-core";
+import { readPrefs, usePrefsStore } from "./prefs";
 
 export type { MailState } from "./store-core";
-export { DEMO_BOXES, INITIAL_THREADS, latestDate, filterVisible, folderCounts } from "./store-core";
+export { DEMO_BOXES, INITIAL_THREADS, isHoldingSend, latestDate, filterVisible, folderCounts } from "./store-core";
 
 const FOLLOW_UP_MS = 3 * 24 * 60 * 60 * 1000;
+export const HOLD_MS = 8_000;
+const holdTimers = new Map<string, number>();
+
+function cancelHold(id: string) {
+  const t = holdTimers.get(id);
+  if (t) window.clearTimeout(t);
+  holdTimers.delete(id);
+}
+
+function armHold(id: string, flush: () => void) {
+  cancelHold(id);
+  if (typeof window === "undefined") return;
+  const t = window.setTimeout(() => {
+    holdTimers.delete(id);
+    flush();
+  }, HOLD_MS);
+  holdTimers.set(id, t);
+}
 
 function outgoingAttachments(atts: Attachment[]) {
   return atts.flatMap((a) => {
@@ -66,8 +82,8 @@ function persistableThreads(threads: Thread[]): Thread[] {
 export const useMailStore = create<MailState>((set, get) => ({
   version: VERSION,
   hydrated: false,
-  threads: INITIAL_THREADS,
-  selectedId: INITIAL_SELECTED,
+  threads: [],
+  selectedId: null,
   checkedIds: [],
   folder: "inbox",
   split: "focused",
@@ -80,61 +96,116 @@ export const useMailStore = create<MailState>((set, get) => ({
   labelOpen: false,
   sendLaterOpen: false,
   rulesOpen: false,
+  fileEventOpen: false,
+  fileEventPrefill: null,
   onboarding: true,
   pendingG: false,
   undoStack: [],
   mobilePane: "list",
   source: "demo",
-  me: DEMO_ME,
+  me: { name: "", email: "" },
   connectOpen: false,
   syncing: false,
   lastSync: null,
   lastError: null,
   mailboxProvider: null,
-  boxes: DEMO_BOXES,
-  activeBoxId: "demo-1",
+  boxes: [],
+  activeBoxId: null,
+  boxCache: {},
   omarchyOpen: false,
   summaryById: {},
   summarizingId: null,
 
   hydrate: () => {
     if (get().hydrated) return;
-    let threads = get().threads;
     let onboarding = true;
+    let threads: Thread[] = [];
+    let source: "demo" | "imap" = "demo";
+    let me: Person = { name: "", email: "" };
+    let mailboxProvider: string | null = null;
+    let lastSync: string | null = null;
+    let activeBoxId: string | null = null;
+    let boxes: MailState["boxes"] = [];
+    let boxCache: Record<string, Thread[]> = {};
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { version?: number; threads?: Thread[] };
-        if (parsed.version === VERSION && Array.isArray(parsed.threads) && parsed.threads.length > 0) {
-          threads = parsed.threads;
+      onboarding = localStorage.getItem(ONBOARD_KEY) !== "1";
+      const active = localStorage.getItem(ACTIVE_KEY);
+      if (active && !active.startsWith("demo")) {
+        const raw = localStorage.getItem(`${IMAP_KEY}:${active}`) ?? localStorage.getItem(IMAP_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as {
+            version?: number;
+            threads?: Thread[];
+            me?: Person;
+            mailboxProvider?: string | null;
+            lastSync?: string | null;
+            activeBoxId?: string | null;
+            boxes?: MailState["boxes"];
+          };
+          if (parsed.version === VERSION && Array.isArray(parsed.threads)) {
+            threads = parsed.threads;
+            source = "imap";
+            activeBoxId = parsed.activeBoxId ?? active;
+            me = parsed.me ?? me;
+            mailboxProvider = parsed.mailboxProvider ?? null;
+            lastSync = parsed.lastSync ?? null;
+            if (Array.isArray(parsed.boxes)) boxes = parsed.boxes.filter((b) => !String(b.id).startsWith("demo"));
+          }
         }
       }
-      onboarding = localStorage.getItem(ONBOARD_KEY) !== "1";
     } catch {
       /* ignore */
+    }
+    if (source === "imap") {
+      for (const b of boxes) {
+        boxCache[b.id] =
+          b.id === activeBoxId ? threads : loadPersistedThreads(persistKey("imap", b.id), []);
+      }
+      if (activeBoxId) boxCache[activeBoxId] = threads;
     }
     const focused = threads
       .filter((t) => t.folder === "inbox" && t.focused)
       .sort((a, b) => latestDate(b) - latestDate(a));
-    const keepSelection = threads.some((t) => t.id === get().selectedId);
-    const selectedId = keepSelection ? get().selectedId : (focused[0]?.id ?? threads[0]?.id ?? null);
+    const selectedId = focused[0]?.id ?? threads[0]?.id ?? null;
+    const markOpened = readPrefs().layout === "three";
     set({
       hydrated: true,
-      threads: threads.map((t) => (t.id === selectedId ? { ...t, unread: false } : t)),
+      threads: markOpened
+        ? threads.map((t) => (t.id === selectedId ? { ...t, unread: false } : t))
+        : threads,
       onboarding,
       selectedId,
+      source,
+      me,
+      mailboxProvider,
+      lastSync,
+      activeBoxId,
+      boxes,
+      boxCache,
     });
   },
 
   persist: () => {
-    const { threads, version, source, me, lastSync, mailboxProvider, activeBoxId } = get();
+    const { threads, version, source, me, lastSync, mailboxProvider, activeBoxId, boxes, boxCache } = get();
+    if (source !== "imap" || !activeBoxId) return;
+    if (boxCache[activeBoxId] !== threads) {
+      set({ boxCache: { ...boxCache, [activeBoxId]: threads } });
+    }
     const key = persistKey(source, activeBoxId);
     try {
       localStorage.setItem(
         key,
-        JSON.stringify({ version, threads: persistableThreads(threads), me, lastSync, mailboxProvider, activeBoxId }),
+        JSON.stringify({
+          version,
+          threads: persistableThreads(threads),
+          me,
+          lastSync,
+          mailboxProvider,
+          activeBoxId,
+          boxes,
+        }),
       );
-      if (activeBoxId) localStorage.setItem(ACTIVE_KEY, activeBoxId);
+      localStorage.setItem(ACTIVE_KEY, activeBoxId);
     } catch {
       /* ignore */
     }
@@ -169,6 +240,7 @@ export const useMailStore = create<MailState>((set, get) => ({
       mailboxProvider: status.provider,
       boxes,
       activeBoxId: active?.id ?? null,
+      boxCache: active ? { ...get().boxCache, [active.id]: threads } : get().boxCache,
       syncing: false,
       selectedId: still ? keepId : (focused[0]?.id ?? threads[0]?.id ?? null),
       folder: keepFolder,
@@ -178,21 +250,18 @@ export const useMailStore = create<MailState>((set, get) => ({
   },
 
   useDemo: () => {
-    const threads = loadPersistedThreads(STORAGE_KEY, INITIAL_THREADS);
-    const focused = threads
-      .filter((t) => t.folder === "inbox" && t.focused)
-      .sort((a, b) => latestDate(b) - latestDate(a));
     set({
       source: "demo",
-      me: DEMO_ME,
-      threads,
+      me: { name: "", email: "" },
+      threads: [],
       lastSync: null,
       lastError: null,
       mailboxProvider: null,
-      boxes: DEMO_BOXES,
-      activeBoxId: "demo-1",
+      boxes: [],
+      activeBoxId: null,
+      boxCache: {},
       syncing: false,
-      selectedId: focused[0]?.id ?? threads[0]?.id ?? null,
+      selectedId: null,
       folder: "inbox",
       split: "focused",
     });
@@ -202,24 +271,35 @@ export const useMailStore = create<MailState>((set, get) => ({
   setSyncing: (syncing) => set({ syncing }),
   setOmarchyOpen: (omarchyOpen) => set({ omarchyOpen, pendingG: false }),
 
-  switchBox: (slot) => {
+  switchBox: (slot, selectId) => {
     const n: MailSlot = Number(slot) === 2 ? 2 : 1;
-    const { boxes, activeBoxId, source } = get();
+    const { boxes, activeBoxId, source, threads: prevThreads } = get();
     const next = boxes.find((b) => Number(b.slot) === n);
-    if (!next || next.id === activeBoxId) return;
-    get().persist();
-    let threads: Thread[];
-    if (source === "demo") {
-      const fallback = n === 2 ? buildPersonalSeed() : INITIAL_THREADS;
-      threads = loadPersistedThreads(persistKey("demo", next.id), fallback);
-      if (n === 2 && !threads.some((t) => t.id.startsWith("p-"))) threads = fallback;
-      if (n === 1 && threads.some((t) => t.id.startsWith("p-"))) threads = fallback;
-    } else {
-      threads = loadPersistedThreads(persistKey("imap", next.id), []);
+    if (!next) {
+      set({ connectOpen: true, calendarOpen: false, pendingG: false });
+      return;
     }
+    if (next.id === activeBoxId) {
+      if (selectId) {
+        const t = get().threads.find((x) => x.id === selectId);
+        if (t) {
+          get().select(selectId, { open: true });
+          if (t.folder === "inbox") get().setSplit(t.focused ? "focused" : "other");
+          else get().setFolder(folderOf(t));
+        }
+      }
+      set({ calendarOpen: false, pendingG: false });
+      return;
+    }
+    get().persist();
+    const threads = source === "imap" ? loadPersistedThreads(persistKey("imap", next.id), []) : [];
+    const pick = selectId ? threads.find((t) => t.id === selectId) : undefined;
     const focused = threads
       .filter((t) => t.folder === "inbox" && t.focused)
       .sort((a, b) => latestDate(b) - latestDate(a));
+    const selected = pick ?? focused[0] ?? threads[0];
+    const folder = pick ? folderOf(pick) : "inbox";
+    const split = pick && pick.folder === "inbox" ? (pick.focused ? "focused" : "other") : "focused";
     set({
       activeBoxId: next.id,
       me: { name: next.name, email: next.email },
@@ -227,20 +307,71 @@ export const useMailStore = create<MailState>((set, get) => ({
       lastSync: next.lastSync,
       lastError: next.lastError,
       threads,
-      selectedId: focused[0]?.id ?? threads[0]?.id ?? null,
-      folder: "inbox",
-      split: "focused",
+      selectedId: selected?.id ?? null,
+      folder,
+      split,
       mobilePane: "list",
       checkedIds: [],
       calendarOpen: false,
+      pendingG: false,
+      boxCache: {
+        ...get().boxCache,
+        ...(activeBoxId ? { [activeBoxId]: prevThreads } : {}),
+        [next.id]: threads,
+      },
     });
     toast(next.label);
   },
 
-  select: (id) => {
+  cacheBox: (boxId, threads) => {
+    set((s) => ({ boxCache: { ...s.boxCache, [boxId]: threads } }));
+    if (get().source !== "imap") return;
+    try {
+      const raw = localStorage.getItem(persistKey("imap", boxId));
+      const parsed = raw ? (JSON.parse(raw) as { version?: number }) : null;
+      const version = parsed?.version === VERSION ? parsed.version : VERSION;
+      localStorage.setItem(
+        persistKey("imap", boxId),
+        JSON.stringify({
+          ...(raw ? JSON.parse(raw) : {}),
+          version,
+          threads: persistableThreads(threads),
+          activeBoxId: boxId,
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+  },
+
+  cycleSpace: (dir = 1) => {
+    const { boxes, activeBoxId, calendarOpen } = get();
+    type Space = { kind: "mail"; slot: MailSlot } | { kind: "cal" };
+    const items: Space[] = boxes.map((b) => ({ kind: "mail" as const, slot: b.slot }));
+    items.push({ kind: "cal" });
+    if (items.length === 1) {
+      get().setCalendarOpen(!calendarOpen);
+      return;
+    }
+    let idx = calendarOpen
+      ? items.findIndex((i) => i.kind === "cal")
+      : items.findIndex((i) => i.kind === "mail" && boxes.find((b) => b.slot === i.slot)?.id === activeBoxId);
+    if (idx < 0) idx = 0;
+    const next = items[(idx + dir + items.length) % items.length]!;
+    if (next.kind === "cal") get().setCalendarOpen(true);
+    else get().switchBox(next.slot);
+  },
+
+  select: (id, opts) => {
+    const layout = usePrefsStore.getState().layout;
+    const pane = get().mobilePane;
+    const open = opts?.open ?? (layout === "three" || pane === "read");
     const prev = id ? get().threads.find((t) => t.id === id) : undefined;
-    set({ selectedId: id, mobilePane: id ? "read" : "list" });
-    if (!id) return;
+    set({
+      selectedId: id,
+      mobilePane: open ? (id ? "read" : "list") : get().mobilePane,
+    });
+    if (!id || !open) return;
     set((s) => ({
       threads: s.threads.map((t) => {
         if (t.id !== id || !t.unread) return t;
@@ -279,14 +410,14 @@ export const useMailStore = create<MailState>((set, get) => ({
   },
 
   setFolder: (folder) => {
-    set({ folder, search: "", mobilePane: "list", checkedIds: [] });
+    set({ folder, search: "", mobilePane: "list", checkedIds: [], calendarOpen: false });
     const { threads, split, search } = get();
     const list = filterVisible(threads, folder, split, search);
     set({ selectedId: list[0]?.id ?? null });
   },
 
   setSplit: (split) => {
-    set({ split, folder: "inbox", search: "", mobilePane: "list", checkedIds: [] });
+    set({ split, folder: "inbox", search: "", mobilePane: "list", checkedIds: [], calendarOpen: false });
     const { threads, search } = get();
     const list = filterVisible(threads, "inbox", split, search);
     set({ selectedId: list[0]?.id ?? null });
@@ -300,6 +431,11 @@ export const useMailStore = create<MailState>((set, get) => ({
   setLabelOpen: (labelOpen) => set({ labelOpen }),
   setSendLaterOpen: (sendLaterOpen) => set({ sendLaterOpen }),
   setRulesOpen: (rulesOpen) => set({ rulesOpen }),
+  setFileEventOpen: (fileEventOpen, prefill = null) =>
+    set({
+      fileEventOpen,
+      fileEventPrefill: fileEventOpen ? prefill : null,
+    }),
   trainSplit: (split: Split) => {
     const { selectedId, threads, me, folder, split: view, search } = get();
     const t = threads.find((x) => x.id === selectedId);
@@ -506,7 +642,8 @@ export const useMailStore = create<MailState>((set, get) => ({
   restoreScheduled: () => {
     const now = Date.now();
     const due = get().threads.filter((t) => t.sendAt && new Date(t.sendAt).getTime() <= now);
-    if (!due.length) return 0;
+    if (!due.length) return { count: 0, held: 0 };
+    const held = due.filter((t) => t.folder === "sent").length;
     set((s) => ({
       threads: s.threads.map((t) =>
         t.sendAt && new Date(t.sendAt).getTime() <= now
@@ -533,7 +670,7 @@ export const useMailStore = create<MailState>((set, get) => ({
         });
       }
     }
-    return due.length;
+    return { count: due.length, held };
   },
 
   setLabel: (label, id) => {
@@ -554,6 +691,10 @@ export const useMailStore = create<MailState>((set, get) => ({
   undo: () => {
     const item = get().undoStack[0];
     if (!item) return null;
+    if (item.label === "Send") {
+      for (const id of item.removeIds ?? []) cancelHold(id);
+      for (const t of item.threads) cancelHold(t.id);
+    }
     const restored = new Map(item.threads.map((t) => [t.id, t]));
     const remove = new Set(item.removeIds ?? []);
     set((s) => ({
@@ -604,6 +745,11 @@ export const useMailStore = create<MailState>((set, get) => ({
   },
 
   openCompose: (draft) => {
+    if (get().source !== "imap") {
+      set({ connectOpen: true, commandOpen: false });
+      toast("Connect a mailbox to write");
+      return;
+    }
     set({
       compose: {
         mode: "new",
@@ -728,6 +874,7 @@ export const useMailStore = create<MailState>((set, get) => ({
       opens: [],
     };
     const existing = c.threadId ? get().threads.find((t) => t.id === c.threadId) : undefined;
+    const holdUntil = new Date(Date.now() + HOLD_MS).toISOString();
     const thread: Thread = existing
       ? {
           ...existing,
@@ -735,6 +882,7 @@ export const useMailStore = create<MailState>((set, get) => ({
           unread: false,
           subject: c.subject.trim() || existing.subject,
           followUpUntil,
+          sendAt: holdUntil,
           labels: c.remind
             ? existing.labels.includes("Waiting")
               ? existing.labels
@@ -751,6 +899,7 @@ export const useMailStore = create<MailState>((set, get) => ({
           focused: true,
           labels: c.remind ? ["Waiting"] : [],
           followUpUntil,
+          sendAt: holdUntil,
           messages: [msg],
         };
     set((s) => ({
@@ -765,58 +914,10 @@ export const useMailStore = create<MailState>((set, get) => ({
       ].slice(0, 12),
     }));
     get().persist();
-
-    if (get().source === "imap") {
-      const res = await sendMail({
-        data: {
-          to: c.to,
-          cc: c.cc,
-          subject: c.subject,
-          body: c.body,
-          attachments: outgoingAttachments(c.attachments ?? []),
-          boxId: get().activeBoxId ?? undefined,
-        },
-      });
-      if (!res.ok) return res.error;
-      return null;
-    }
-
-    if (c.tracking) {
-      const tid = thread.id;
-      const mid = msg.id;
-      const delay = 7000 + Math.floor(Math.random() * 8000);
-      window.setTimeout(() => {
-        set((s) => ({
-          threads: s.threads.map((t) =>
-            t.id !== tid
-              ? t
-              : {
-                  ...t,
-                  messages: t.messages.map((m) =>
-                    m.id === mid
-                      ? {
-                          ...m,
-                          opens: [
-                            ...m.opens,
-                            {
-                              at: new Date().toISOString(),
-                              city: ["Austin", "Berlin", "Tokyo", "Lisbon", "Montreal"][
-                                Math.floor(Math.random() * 5)
-                              ]!,
-                              device: ["iPhone", "MacBook Pro", "Framework 13", "Pixel"][
-                                Math.floor(Math.random() * 4)
-                              ]!,
-                            },
-                          ],
-                        }
-                      : m,
-                  ),
-                },
-          ),
-        }));
-        get().persist();
-      }, delay);
-    }
+    armHold(thread.id, () => {
+      const result = get().restoreScheduled();
+      if (result.held) toast("Sent");
+    });
     return null;
   },
 

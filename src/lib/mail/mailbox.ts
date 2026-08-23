@@ -310,6 +310,27 @@ export const connectMailbox = createServerFn({ method: "POST" })
     return toStatus(boxes, active, fetched.threads);
   });
 
+export const peekMailboxes = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .handler(async ({
+    context,
+  }): Promise<Array<{ boxId: string; ok: boolean; exists: number; uidNext: number; unseen: number }>> => {
+    const boxes = await listBoxes(context.userId);
+    if (!boxes.length) return [];
+    const { peekInbox } = await import("./imap.server");
+    const { openSecret } = await import("./crypto.server");
+    const out: Array<{ boxId: string; ok: boolean; exists: number; uidNext: number; unseen: number }> = [];
+    for (const box of boxes) {
+      try {
+        const peek = await peekInbox(toImapAccount(box), openSecret(box.password_cipher));
+        out.push({ boxId: box.id, ok: true, ...peek });
+      } catch {
+        out.push({ boxId: box.id, ok: false, exists: 0, uidNext: 0, unseen: 0 });
+      }
+    }
+    return out;
+  });
+
 export const syncMailbox = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input?: { boxId?: string }) => input ?? {})

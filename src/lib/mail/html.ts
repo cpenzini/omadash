@@ -66,7 +66,13 @@ function scrubStyle(raw: string) {
     .replace(/expression\s*\([^)]*\)/gi, "")
     .replace(/behavior\s*:[^;]+/gi, "")
     .replace(/-moz-binding[^;]+/gi, "")
-    .replace(/position\s*:\s*fixed/gi, "position:static");
+    .replace(/position\s*:\s*fixed/gi, "position:static")
+    .replace(/max-width\s*:\s*(\d+(?:\.\d+)?)px/gi, (_, n: string) =>
+      Number(n) >= 320 ? "max-width:100%" : `max-width:${n}px`,
+    )
+    .replace(/(?:^|;)\s*width\s*:\s*(\d+(?:\.\d+)?)px/gi, (match, n: string) =>
+      Number(n) >= 320 ? match.replace(/width\s*:\s*\d+(?:\.\d+)?px/i, "width:100%") : match,
+    );
 }
 
 export function emailHasRemoteImages(html: string) {
@@ -120,13 +126,21 @@ export function prepareEmailHtml(
         el.setAttribute("style", "display:none");
       }
     }
+    if (el.tagName === "TABLE" || el.tagName === "TD" || el.tagName === "TH") {
+      const w = el.getAttribute("width");
+      if (w && /^\d+$/.test(w) && Number(w) >= 320) {
+        el.removeAttribute("width");
+        const s = el.getAttribute("style") || "";
+        if (!/width\s*:/i.test(s)) el.setAttribute("style", `${s};width:100%;max-width:100%`.replace(/^;/, ""));
+      }
+    }
   }
   for (const el of doomed) el.remove();
   const body = wrap.innerHTML;
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>
-    html,body{margin:0;padding:0;background:${opts.bg};color:${opts.fg};
-      font:13px/1.45 "Instrument Sans",system-ui,sans-serif;word-wrap:break-word;}
-    img{max-width:100%;height:auto}
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><style>
+    html,body{margin:0;padding:0;width:100%;max-width:100%;background:${opts.bg};color:${opts.fg};
+      font:13px/1.45 "Instrument Sans",system-ui,sans-serif;word-wrap:break-word;overflow-wrap:anywhere;}
+    img{max-width:100% !important;height:auto}
     a{color:inherit}
     table{max-width:100%;border-collapse:collapse}
     blockquote{margin:0;padding-left:12px;border-left:2px solid rgba(127,127,127,.35);opacity:.85}

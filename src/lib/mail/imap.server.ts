@@ -263,6 +263,24 @@ function assemble(account: ImapAccount, raw: RawMsg[]): { me: Person; threads: T
   return { me, threads };
 }
 
+export async function peekInbox(
+  account: ImapAccount,
+  password: string,
+): Promise<{ exists: number; uidNext: number; unseen: number }> {
+  try {
+    return await withImap(account, password, async (client) => {
+      const st = await client.status("INBOX", { messages: true, uidNext: true, unseen: true });
+      return {
+        exists: st.messages ?? 0,
+        uidNext: st.uidNext ?? 0,
+        unseen: st.unseen ?? 0,
+      };
+    });
+  } catch (err) {
+    throw new Error(explain(err, account.authKind));
+  }
+}
+
 export async function fetchMailbox(account: ImapAccount, password: string) {
   try {
     return await withImap(account, password, async (client) => {

@@ -153,7 +153,7 @@ export function Compose() {
   async function onSend() {
     const err = await send();
     if (err) toast(err);
-    else toast("Sent · U to undo");
+    else toast("Sending · U to undo");
   }
 
   return (

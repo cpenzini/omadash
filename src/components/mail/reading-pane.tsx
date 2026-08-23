@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArrowLeft,
   BellOff,
+  CalendarPlus,
   Clock,
   CornerUpLeft,
   Eye,
@@ -19,6 +20,8 @@ import { formatFullTime, formatPeople, formatReceiptTime, minutesBetween } from 
 import { emailHasRemoteImages, prepareEmailHtml } from "@/lib/mail/html";
 import { getAttachment } from "@/lib/mail/mailbox";
 import { useMailStore } from "@/lib/mail/store";
+import { usePrefsStore } from "@/lib/mail/prefs";
+import { formatHit, parseThreadDates } from "@/lib/mail/dates";
 import type { Attachment, Message } from "@/lib/mail/types";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "./avatar";
@@ -39,12 +42,36 @@ export function ReadingPane() {
   const summarizing = useMailStore((s) => s.summarizingId === s.selectedId);
   const me = useMailStore((s) => s.me);
   const setMobilePane = useMailStore((s) => s.setMobilePane);
+  const source = useMailStore((s) => s.source);
+  const setConnectOpen = useMailStore((s) => s.setConnectOpen);
+  const layout = usePrefsStore((s) => s.layout);
+  const showBack = layout === "two";
+  const setFileEventOpen = useMailStore((s) => s.setFileEventOpen);
+  const dateHits = useMemo(() => (thread ? parseThreadDates(thread) : []), [thread]);
 
   if (!thread || !selectedId) {
     return (
-      <section className="hidden h-full min-w-0 flex-1 flex-col items-center justify-center bg-bg lg:flex">
-        <p className="text-sm text-subtle">Select a thread</p>
-        <p className="mt-1 text-mail text-subtle">J / K to move · Enter to open</p>
+      <section className="flex h-full min-w-0 flex-1 flex-col items-center justify-center bg-bg">
+        {source !== "imap" ? (
+          <>
+            <p className="text-sm text-fg">Connect a mailbox</p>
+            <p className="mt-1 max-w-xs text-center text-mail text-subtle text-pretty">
+              Mail stays empty until you add Gmail, Fastmail, iCloud, or IMAP.
+            </p>
+            <button
+              type="button"
+              onClick={() => setConnectOpen(true)}
+              className="mt-4 inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-medium text-accent-fg"
+            >
+              Connect mailbox
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-subtle">Select a thread</p>
+            <p className="mt-1 text-mail text-subtle">J / K to move · Enter to open</p>
+          </>
+        )}
       </section>
     );
   }
@@ -54,7 +81,7 @@ export function ReadingPane() {
       <header className="flex shrink-0 items-center gap-1 border-b border-border px-2 py-1.5 lg:px-3">
         <Button
           size="icon-sm"
-          className="lg:hidden"
+          className={showBack ? undefined : "lg:hidden"}
           onClick={() => setMobilePane("list")}
           aria-label="Back to list"
         >
@@ -74,6 +101,9 @@ export function ReadingPane() {
             </div>
           )}
         </div>
+        <Button size="icon-sm" onClick={() => setFileEventOpen(true)} aria-label="File on calendar">
+          <CalendarPlus className="size-4" />
+        </Button>
         <Button size="icon-sm" onClick={() => void summarize()} aria-label="Summarize">
           <Sparkles className={cn("size-4", summarizing && "text-unread")} />
         </Button>
@@ -95,7 +125,29 @@ export function ReadingPane() {
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto scroll-thin">
-        <div className="mx-auto w-full max-w-2xl px-4 py-5 lg:px-8">
+        <div className="w-full min-w-0 px-4 py-5 lg:px-8">
+          {dateHits.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+              {dateHits.slice(0, 3).map((hit) => (
+                <button
+                  key={`${hit.start.toISOString()}-${hit.text}`}
+                  type="button"
+                  onClick={() =>
+                    setFileEventOpen(true, {
+                      start: hit.start.toISOString(),
+                      end: hit.end.toISOString(),
+                      text: hit.text,
+                    })
+                  }
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-2 text-micro text-muted hover:text-fg"
+                >
+                  <CalendarPlus className="size-3" />
+                  {formatHit(hit)}
+                </button>
+              ))}
+              <span className="text-micro text-subtle">N</span>
+            </div>
+          )}
           {(summarizing || summary) && (
             <div className="mb-6 rounded-md border border-border bg-surface px-3 py-3">
               <p className="mb-1.5 text-micro font-medium uppercase tracking-wider text-subtle">
@@ -248,7 +300,10 @@ function MessageBody({ message }: { message: Message }) {
 }
 
 function HtmlBody({ html, fallback }: { html: string; fallback: string }) {
-  const [showImages, setShowImages] = useState(false);
+  const showRemoteDefault = usePrefsStore((s) => s.showRemoteImages);
+  const [showImages, setShowImages] = useState(showRemoteDefault);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const remote = emailHasRemoteImages(html);
   const fg = typeof document !== "undefined"
     ? getComputedStyle(document.documentElement).getPropertyValue("--c-fg").trim() || "#eeeff2"
@@ -261,10 +316,37 @@ function HtmlBody({ html, fallback }: { html: string; fallback: string }) {
     [html, showImages, fg, bg],
   );
 
+  const fit = useCallback(() => {
+    const iframe = frameRef.current;
+    const doc = iframe?.contentDocument;
+    if (!iframe || !doc?.body) return;
+    const h = Math.max(160, Math.min(Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 8, 8000));
+    if (Math.abs((parseFloat(iframe.style.height) || 0) - h) < 2) return;
+    iframe.style.height = `${h}px`;
+  }, []);
+
+  useEffect(() => {
+    const iframe = frameRef.current;
+    const wrap = wrapRef.current;
+    if (!iframe) return;
+    iframe.addEventListener("load", fit);
+    window.addEventListener("resize", fit);
+    const ro = wrap ? new ResizeObserver(fit) : null;
+    if (wrap && ro) ro.observe(wrap);
+    fit();
+    const t = window.setTimeout(fit, 50);
+    return () => {
+      iframe.removeEventListener("load", fit);
+      window.removeEventListener("resize", fit);
+      ro?.disconnect();
+      window.clearTimeout(t);
+    };
+  }, [srcDoc, fit]);
+
   if (!srcDoc) return <TextBody text={fallback} />;
 
   return (
-    <div className="mt-4">
+    <div ref={wrapRef} className="mt-4 min-w-0">
       {remote && !showImages && (
         <button
           type="button"
@@ -276,11 +358,12 @@ function HtmlBody({ html, fallback }: { html: string; fallback: string }) {
         </button>
       )}
       <iframe
+        ref={frameRef}
         title="Message"
-        sandbox="allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+        sandbox="allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-same-origin"
         srcDoc={srcDoc}
-        className="w-full rounded-md border border-border bg-bg"
-        style={{ minHeight: 200, height: 420 }}
+        className="block w-full min-w-0 rounded-md border border-border bg-bg"
+        style={{ minHeight: 160, height: 160 }}
       />
     </div>
   );

@@ -73,20 +73,34 @@ Folders are the `Folder` union in [`src/lib/mail/types.ts`](../src/lib/mail/type
 
 ## Inbox rules
 
-Editable list in [`src/lib/mail/rules.ts`](../src/lib/mail/rules.ts). First enabled match wins; unmatched keep `thread.focused` from seed or IMAP. Persist key `omadash-rules-v1`. Train from a thread with `Shift+O` / `Shift+I` (`upsertFrom`). Classify at filter/count time — do not rewrite stored `focused`.
+Editable list in [`src/lib/mail/rules.ts`](../src/lib/mail/rules.ts). First enabled match wins; unmatched keep `thread.focused` from IMAP. Persist key `omadash-rules-v1`. Train from a thread with `Shift+O` / `Shift+I` (`upsertFrom`). Classify at filter/count time — do not rewrite stored `focused`.
 
 ## Compose contacts and attachments
 
-[`src/lib/mail/contacts.ts`](../src/lib/mail/contacts.ts) builds the To/Cc pool from threads (demo merges both boxes). Attachments live on `ComposeDraft.attachments` as data URLs, cap 8 files / 8 MB, and go out through `sendViaSmtp`. Heavy data URLs are stripped on persist so localStorage does not blow the quota.
+[`src/lib/mail/contacts.ts`](../src/lib/mail/contacts.ts) builds the To/Cc pool from threads in the active mailbox. Attachments live on `ComposeDraft.attachments` as data URLs, cap 8 files / 8 MB, and go out through `sendViaSmtp`. Heavy data URLs are stripped on persist so localStorage does not blow the quota.
+
+## Settings and layout
+
+Mail layout is `omadash-prefs-v1` in [`prefs.ts`](../src/lib/mail/prefs.ts). Default is two panes (compact list, Enter to open). Three panes is the list beside the thread. Settings overlay: [`settings.tsx`](../src/components/mail/settings.tsx) — layout, accounts, appearance, calendar zone, notifications, mail. `,` opens it; `\` toggles layout. Keep new prefs in that store, not a second localStorage key, unless they are a different lifetime (theme already has `omadash-theme-v1`).
 
 ## Calendar
 
-Month view: [`src/components/mail/calendar-panel.tsx`](../src/components/mail/calendar-panel.tsx). Connect overlay: [`src/components/mail/connect-calendar.tsx`](../src/components/mail/connect-calendar.tsx).
+Full-window day / week / work / month / agenda: [`src/components/mail/calendar-panel.tsx`](../src/components/mail/calendar-panel.tsx). Same slot as the mail panes — sidebar stays. Connect overlay: [`src/components/mail/connect-calendar.tsx`](../src/components/mail/connect-calendar.tsx).
 
-- Mail-sourced meetings are pinned by thread id in [`src/lib/mail/calendar.ts`](../src/lib/mail/calendar.ts). Add a row, keep the weekday/hour honest. Local events (`N`) persist in `localStorage`.
+- Views live in the panel (`D` / `W` / `F` work week / `M` / `A` agenda, `V` cycles). Timed layout is `layoutDayEvents` in [`src/lib/mail/calendar.ts`](../src/lib/mail/calendar.ts). Second time zone is `secondTz` on the calendar store (`Z` to cycle).
+- Upcoming events notify through [`notify.ts`](../src/lib/mail/notify.ts) (`notifyUpcoming`, 10 minutes).
+- The day stays empty until a calendar account is connected. Account colors live in [`cal-presets.ts`](../src/lib/mail/cal-presets.ts) (`CAL_COLORS`, `nextCalColor`). Click the dot on a connected account to cycle. New events pick a destination account in the inspector.
+- Cycle mailbox / mailbox / calendar with `` ` `` (`cycleSpace` on the mail store). `1` / `2` / `3` jump.
+- File a date from a thread: [`dates.ts`](../src/lib/mail/dates.ts) scans the subject and last messages. Overlay [`file-event.tsx`](../src/components/mail/file-event.tsx). `N` from mail. Thread id is stamped in the event description (`omadash-thread:`) so CalDAV/Google round-trip. Do not auto-pin every date — filing is explicit. If a phrasing is missed, extend the scanner, do not add a library.
 - Add a CalDAV host in [`src/lib/mail/cal-presets.ts`](../src/lib/mail/cal-presets.ts). Widen `CalProviderId`, add the preset.
 - Server door is [`src/lib/mail/calendar-sync.ts`](../src/lib/mail/calendar-sync.ts) — same `authMiddleware` + `user_id` rule as mail. CalDAV talks through [`caldav.server.ts`](../src/lib/mail/caldav.server.ts) (`tsdav`). Google Calendar API is [`google-cal.server.ts`](../src/lib/mail/google-cal.server.ts). Signing in with Google (the Grok broker) is identity only. A second Google approval (`GOOGLE_CLIENT_ID` / `SECRET`, or `GOOGLE_CALENDAR_*`) asks for Gmail IMAP (`https://mail.google.com/`) and Calendar together, then stores a refresh token on both `mail_boxes` (`auth_kind=google`) and `cal_accounts`. Without those env vars, Gmail is still an app password and Google Calendar is a secret iCal URL (read-only).
 - Recurrence is not expanded for CalDAV/ICS masters. Google fetches `singleEvents`. Do not invent a recurrence engine here.
+
+## Live mail and undo send
+
+Live mail is `peekMailboxes` (IMAP STATUS) in [`mailbox.ts`](../src/lib/mail/mailbox.ts), not a held IDLE — serverless cannot keep the socket. The open tab peeks every 12s (45s when hidden) and full-syncs on change.
+
+Send holds 8s (`HOLD_MS` in [`store.ts`](../src/lib/mail/store.ts)); `U` cancels before SMTP. ⌘K reads `boxCache` so both mailboxes search.
 
 ## HTML and tracking
 
@@ -105,5 +119,6 @@ These are good later essays, not silent scope:
 - Plugin runtime / WASM extensions
 - Recurrence expansion / meeting invites
 - Shared inboxes / comments
+- Natural-language create, snooze-on-the-day, sub-calendars, drag to move
 
 If you build one, keep the keymap honest and send a pull request.

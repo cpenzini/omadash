@@ -18,15 +18,16 @@ import {
   Trash2,
   Keyboard,
   Palette,
+  Settings2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { counterpart, formatListTime, snippetOf, threadPreview } from "@/lib/mail/format";
 import { SNIPPETS } from "@/lib/mail/snippets";
-import { buildPersonalSeed } from "@/lib/mail/seed";
-import { INITIAL_THREADS, useMailStore } from "@/lib/mail/store";
+import { useMailStore } from "@/lib/mail/store";
 import { classifyThread } from "@/lib/mail/rules";
 import { useCalendarStore } from "@/lib/mail/calendar";
 import { THEMES, useThemeStore } from "@/lib/theme";
+import { applyMailLayout, usePrefsStore } from "@/lib/mail/prefs";
 import { cn } from "@/lib/utils";
 import type { Thread } from "@/lib/mail/types";
 
@@ -52,47 +53,58 @@ export function CommandPalette() {
   const setCalConnectOpen = useCalendarStore((s) => s.setConnectOpen);
   const compose = useMailStore((s) => s.compose);
   const me = useMailStore((s) => s.me);
-  const source = useMailStore((s) => s.source);
-  const activeBoxId = useMailStore((s) => s.activeBoxId);
   const setThemeOpen = useThemeStore((s) => s.setOpen);
   const setTheme = useThemeStore((s) => s.setTheme);
   const setOmarchyOpen = useMailStore((s) => s.setOmarchyOpen);
+  const setSettingsOpen = usePrefsStore((s) => s.setSettingsOpen);
+  const setFileEventOpen = useMailStore((s) => s.setFileEventOpen);
+  const selectedId = useMailStore((s) => s.selectedId);
   const switchBox = useMailStore((s) => s.switchBox);
+  const boxes = useMailStore((s) => s.boxes);
+  const activeBoxId = useMailStore((s) => s.activeBoxId);
+  const boxCache = useMailStore((s) => s.boxCache);
+  const cycleSpace = useMailStore((s) => s.cycleSpace);
+  const calAccounts = useCalendarStore((s) => s.accounts);
 
   const mailHits = useMemo(() => {
-    const extra: Thread[] =
-      source === "demo"
-        ? activeBoxId === "demo-2"
-          ? INITIAL_THREADS
-          : buildPersonalSeed()
-        : [];
-    const seen = new Set(threads.map((t) => t.id));
-    const merged = [...threads, ...extra.filter((t) => !seen.has(t.id))];
-    return merged
-      .filter((t) => t.folder !== "trash")
+    type Hit = { thread: Thread; boxId: string | null; boxLabel: string | null };
+    const hits: Hit[] = [];
+    const seen = new Set<string>();
+    const push = (t: Thread, boxId: string | null, boxLabel: string | null) => {
+      if (t.folder === "trash") return;
+      const key = `${boxId ?? "x"}:${t.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      hits.push({ thread: t, boxId, boxLabel });
+    };
+    const active = boxes.find((b) => b.id === activeBoxId);
+    for (const t of threads) push(t, activeBoxId, active?.label ?? null);
+    for (const [id, list] of Object.entries(boxCache)) {
+      if (id === activeBoxId) continue;
+      const box = boxes.find((b) => b.id === id);
+      for (const t of list) push(t, id, box?.label ?? null);
+    }
+    return hits
       .sort((a, b) => {
-        const da = threadPreview(a)?.date ?? "";
-        const db = threadPreview(b)?.date ?? "";
+        const da = threadPreview(a.thread)?.date ?? "";
+        const db = threadPreview(b.thread)?.date ?? "";
         return db.localeCompare(da);
       })
-      .slice(0, 50);
-  }, [threads, source, activeBoxId]);
+      .slice(0, 80);
+  }, [threads, boxCache, boxes, activeBoxId]);
 
   if (!open) return null;
 
-  function openThread(t: Thread) {
-    const personal = t.id.startsWith("p-");
-    if (source === "demo") {
-      if (personal && activeBoxId !== "demo-2") switchBox(2);
-      if (!personal && activeBoxId === "demo-2") switchBox(1);
-    }
+  function openThread(t: Thread, boxId?: string | null) {
+    const box = boxes.find((b) => b.id === boxId);
+    if (box && box.id !== activeBoxId) switchBox(box.slot, t.id);
     if (t.folder === "sent") setFolder("sent");
     else if (t.folder === "drafts") setFolder("drafts");
     else if (t.folder === "snoozed") setFolder("snoozed");
     else if (t.folder === "done") setFolder("done");
     else if (t.folder === "waiting") setFolder("waiting");
     else setSplit(classifyThread(t) ? "focused" : "other");
-    select(t.id);
+    select(t.id, { open: true });
     setOpen(false);
   }
 
@@ -112,7 +124,7 @@ export function CommandPalette() {
       >
         <Command.Input
           autoFocus
-          placeholder="Search both boxes or jump to a command"
+          placeholder={boxes.length > 1 ? "Search all mailboxes or jump to a command" : "Search mail or jump to a command"}
           className="h-12 w-full border-b border-border bg-transparent px-4 text-sm text-fg outline-none placeholder:text-subtle"
         />
         <Command.List className="max-h-96 overflow-y-auto p-1.5 scroll-thin">
@@ -131,13 +143,26 @@ export function CommandPalette() {
               <PenSquare className="size-3.5" /> Compose
             </Item>
             <Item
-              keywords={["calendar", "agenda", "month", "week", "schedule"]}
+              keywords={["calendar", "agenda", "month", "week", "schedule", "work"]}
               onSelect={() => {
                 setOpen(false);
                 setCalendarOpen(true);
               }}
             >
               <CalendarDays className="size-3.5" /> Calendar
+            </Item>
+            <Item
+              keywords={["calendar", "event", "file", "date", "schedule", "meeting"]}
+              onSelect={() => {
+                setOpen(false);
+                if (!selectedId) {
+                  toast("Select a thread");
+                  return;
+                }
+                setFileEventOpen(true);
+              }}
+            >
+              <CalendarPlus className="size-3.5" /> File on calendar
             </Item>
             <Item
               keywords={["connect", "caldav", "google", "ics", "fastmail", "icloud"]}
@@ -214,6 +239,35 @@ export function CommandPalette() {
               <Palette className="size-3.5" /> Change theme
             </Item>
             <Item
+              keywords={["settings", "preferences", "layout", "accounts", "panes"]}
+              onSelect={() => {
+                setSettingsOpen(true);
+                setOpen(false);
+              }}
+            >
+              <Settings2 className="size-3.5" /> Settings
+            </Item>
+            <Item
+              keywords={["two", "panes", "layout", "superhuman", "list"]}
+              onSelect={() => {
+                applyMailLayout("two", useMailStore.getState());
+                setOpen(false);
+                toast("Two panes");
+              }}
+            >
+              <Inbox className="size-3.5" /> Two panes
+            </Item>
+            <Item
+              keywords={["three", "panes", "layout", "split", "reading"]}
+              onSelect={() => {
+                applyMailLayout("three", useMailStore.getState());
+                setOpen(false);
+                toast("Three panes");
+              }}
+            >
+              <Inbox className="size-3.5" /> Three panes
+            </Item>
+            <Item
               keywords={["omarchy", "install", "webapp", "mako"]}
               onSelect={() => {
                 setOmarchyOpen(true);
@@ -222,24 +276,39 @@ export function CommandPalette() {
             >
               Install on Omarchy
             </Item>
+            {boxes.map((b) => (
+              <Item
+                key={b.id}
+                keywords={[b.label, b.email, "mailbox", "account", String(b.slot)]}
+                onSelect={() => {
+                  switchBox(b.slot);
+                  setOpen(false);
+                }}
+              >
+                {b.label} mailbox
+              </Item>
+            ))}
             <Item
-              keywords={["work", "mailbox", "account"]}
+              keywords={["cycle", "switch", "account", "mailbox", "calendar"]}
               onSelect={() => {
-                switchBox(1);
+                cycleSpace(1);
                 setOpen(false);
               }}
             >
-              Work mailbox
+              Cycle mailbox / calendar
             </Item>
-            <Item
-              keywords={["personal", "mailbox", "account"]}
-              onSelect={() => {
-                switchBox(2);
-                setOpen(false);
-              }}
-            >
-              Personal mailbox
-            </Item>
+            {calAccounts.map((a) => (
+              <Item
+                key={a.id}
+                keywords={[a.label, a.provider, "calendar", "account"]}
+                onSelect={() => {
+                  setCalendarOpen(true);
+                  setOpen(false);
+                }}
+              >
+                <CalendarDays className="size-3.5" /> {a.label}
+              </Item>
+            ))}
             <Item
               keywords={["done", "archive"]}
               onSelect={() => {
@@ -370,17 +439,21 @@ export function CommandPalette() {
           )}
 
           <Command.Group heading="Mail">
-            {mailHits.map((t) => {
+            {mailHits.map((hit) => {
+              const t = hit.thread;
               const last = threadPreview(t);
               const person = counterpart(t, me.email);
               return (
                 <Item
-                  key={t.id}
-                  value={`${t.subject} ${person.name} ${person.email} ${last?.body ?? ""}`}
-                  onSelect={() => openThread(t)}
+                  key={`${hit.boxId ?? "a"}:${t.id}`}
+                  value={`${t.subject} ${person.name} ${person.email} ${last?.body ?? ""} ${hit.boxLabel ?? ""}`}
+                  onSelect={() => openThread(t, hit.boxId)}
                 >
                   <span className="w-28 shrink-0 truncate text-muted">{person.name}</span>
                   <span className="min-w-0 truncate text-fg">{t.subject}</span>
+                  {boxes.length > 1 && hit.boxLabel && (
+                    <span className="hidden shrink-0 text-micro text-subtle sm:inline">{hit.boxLabel}</span>
+                  )}
                   <span className="ml-auto hidden truncate text-subtle sm:inline">
                     {snippetOf(last?.body ?? "", 40)}
                   </span>

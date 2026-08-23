@@ -1,42 +1,45 @@
 # Changelog
 
-## 0.1.0 — 2026-08-22
+## 0.1.0 — 2026-08-23
 
-First public release.
+First public release. Mail and calendar on the same keys. Empty until you connect.
 
-Compose attachments, To: complete, and an inbox you can train.
+**Empty until you connect**
 
-- Attach files in compose (paperclip or drop). Eight files, 8 MB. They send over SMTP.
-- To and Cc complete from people you’ve mailed. Tab or Enter accepts.
-- Editable Focused / Other rules. First match wins; unmatched keep the mailbox split.
-- Train from a thread: `Shift+I` Focused, `Shift+O` Other. Sidebar **Rules**, or ⌘K.
+- No sample inbox, no sample week. Connect a mailbox to see mail; connect a calendar to see events.
+- Two mailboxes on `1` / `2`. Calendar on `3`. `` ` `` cycles mailbox / mailbox / calendar.
+- As many calendar accounts as you attach, each with its own color. Click the dot to change it.
+- New events pick a destination calendar.
 
-Calendars that write back.
+**Mail that writes back**
 
-- CalDAV two-way: Fastmail, iCloud, Nextcloud, generic (`A` from the calendar)
-- Google Calendar two-way when OAuth is configured on the host; otherwise a secret iCal URL (read-only)
-- Continue with Google asks for Gmail and Calendar after identity, then attaches both
-- ICS feed subscribe
-- Add and delete on writable calendars; mail and local events still work signed out
-- Sync (`R`), source chips, connect overlay after sign-in
+- Keyboard-first two-pane client (compact list, Enter to open). Three panes from Settings (`,`) or `\`.
+- IMAP/SMTP for Gmail, Fastmail, iCloud, generic hosts; two-way archive / star / unread.
+- HTML mail, blocked remote images, tracking pixels stripped. The reading pane reflows.
+- Split inbox with editable rules. Train from a thread: `Shift+I` Focused, `Shift+O` Other.
+- Done, trash, snooze, mute, labels, bulk select, waiting, undo.
+- Live IMAP peek while the tab is open. `⌘K` searches every mailbox.
+- Send holds 8 seconds for `U`. Follow-up bounce and send later.
+- Compose attachments (paperclip or drop, 8 files / 8 MB). To and Cc complete from people you've mailed.
+- Thread summarize (`Y`). Rewrite with Grok: shorter / warmer.
+- File a date from a thread onto a calendar (`N`). Detected times become chips in the thread.
 
-The client, finished.
+**Calendar on equal terms**
 
-- Thread summarize (`Y`) — Grok when signed in, local notes otherwise
-- Follow-up bounce — send with “Remind me”; it comes back unread if they don’t reply
-- Send later from compose
-- Calendar: month grid, day agenda, add/remove local events (`G` then `C`)
-- Mute (`M`), bulk select (`X`), labels (`L`)
-- Waiting folder (`G` then `W`)
-- Unified search across Work and Personal
-- Rewrite with Grok: shorter / warmer
-- Catppuccin, Kanagawa, and Rosé Pine palettes
+- Full window next to mail. Day, week, work week (`F`), month, agenda (`A`).
+- Timed grid, overlapping events, now-line, all-day row, titles in the month.
+- Second time zone (`Z`). Desktop ping 10 minutes before an event.
+- CalDAV two-way: Fastmail, iCloud, Nextcloud, generic (`P` from the calendar).
+- Google Calendar two-way when OAuth is on the host; otherwise a secret iCal URL (read-only).
+- Continue with Google asks for Gmail and Calendar after identity, then attaches both.
+- ICS feed subscribe. Add and delete on writable calendars. Sync (`R`).
+- An event filed from mail keeps a link back to the thread.
 
-First cut. MIT.
+**The rest**
 
-- Keyboard-first three-pane client (J/K, E Done, C compose, ⌘K, ?)
-- IMAP/SMTP for Gmail, Fastmail, iCloud, generic hosts; two-way archive/star/unread
-- HTML mail, blocked remote images, tracking pixels stripped
-- Two mailboxes (Work / Personal)
-- Omarchy themes and install overlay
-- Demo inbox so the keys work before you connect
+- Settings window: layout, accounts, appearance, calendar zone, notifications, remote images.
+- Omarchy themes: Steel, Nord, Everforest, Gruvbox, Tokyo Night, Catppuccin, Kanagawa, Rosé Pine, White, Auto.
+- Install-on-Omarchy overlay. Compose via `/?compose=1`. Desktop notifications for mail and upcoming events.
+- Sign-in so mailbox and calendar secrets stay per-user.
+
+MIT.

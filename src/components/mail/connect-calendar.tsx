@@ -3,14 +3,15 @@ import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { CAL_PRESETS, type CalProviderId } from "@/lib/mail/cal-presets";
+import { CAL_PRESETS, CAL_COLORS, nextCalColor, type CalProviderId } from "@/lib/mail/cal-presets";
 import {
   connectCalDav,
   connectIcs,
   disconnectCalendar,
+  setCalendarColor,
   startGoogleOAuth,
 } from "@/lib/mail/calendar-sync";
-import { useCalendarStore } from "@/lib/mail/calendar";
+import { colorDot, useCalendarStore } from "@/lib/mail/calendar";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "./kbd";
 import { cn } from "@/lib/utils";
@@ -31,11 +32,13 @@ export function ConnectCalendar() {
   const [password, setPassword] = useState("");
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
+  const [color, setColor] = useState(() => nextCalColor(accounts.map((a) => a.color)));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setColor(nextCalColor(useCalendarStore.getState().accounts.map((a) => a.color)));
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
@@ -54,7 +57,7 @@ export function ConnectCalendar() {
     try {
       if (provider === "ics" || (provider === "google" && url.trim())) {
         const feed = await connectIcs({
-          data: { url, label: label || undefined, provider },
+          data: { url, label: label || undefined, provider, color },
         });
         applyFeed(feed);
         toast(`Connected ${feed.accounts.at(-1)?.label ?? "calendar"}`);
@@ -79,6 +82,7 @@ export function ConnectCalendar() {
             password,
             caldavUrl: url || undefined,
             label: label || undefined,
+            color,
           },
         });
         applyFeed(feed);
@@ -155,6 +159,18 @@ export function ConnectCalendar() {
               <ul className="mt-4 space-y-1 rounded-md border border-border p-1">
                 {accounts.map((a) => (
                   <li key={a.id} className="flex items-center gap-2 px-2 py-1.5 text-mail">
+                    <button
+                      type="button"
+                      title="Change color"
+                      aria-label={`Color for ${a.label}`}
+                      className={cn("size-2.5 shrink-0 rounded-full", colorDot(a.color))}
+                      disabled={busy}
+                      onClick={() => {
+                        const idx = Math.max(0, CAL_COLORS.indexOf(a.color as (typeof CAL_COLORS)[number]));
+                        const next = CAL_COLORS[(idx + 1) % CAL_COLORS.length]!;
+                        void setCalendarColor({ data: { accountId: a.id, color: next } }).then(applyFeed);
+                      }}
+                    />
                     <span className="min-w-0 flex-1 truncate text-fg">{a.label}</span>
                     <span className="text-micro text-subtle">{a.provider}</span>
                     <button
@@ -234,6 +250,27 @@ export function ConnectCalendar() {
                 </label>
               </>
             )}
+
+            <label className="mt-3 block">
+              <span className="mb-1 block text-micro text-subtle">Color</span>
+              <div className="flex flex-wrap gap-1.5">
+                {CAL_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={c}
+                    aria-pressed={color === c}
+                    onClick={() => setColor(c)}
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full border",
+                      color === c ? "border-fg" : "border-transparent hover:border-border",
+                    )}
+                  >
+                    <span className={cn("size-3.5 rounded-full", colorDot(c))} />
+                  </button>
+                ))}
+              </div>
+            </label>
 
             <label className="mt-3 block">
               <span className="mb-1 block text-micro text-subtle">Label</span>

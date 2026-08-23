@@ -1,12 +1,38 @@
 export type CalProviderId = "google" | "fastmail" | "icloud" | "nextcloud" | "caldav" | "ics";
 
+export const CAL_COLORS = [
+  "unread",
+  "success",
+  "warn",
+  "accent",
+  "danger",
+  "avatar-1",
+  "avatar-3",
+  "avatar-4",
+] as const;
+
+export type CalColorId = (typeof CAL_COLORS)[number];
+
+export function isCalColor(value: string): value is CalColorId {
+  return (CAL_COLORS as readonly string[]).includes(value);
+}
+
+export function nextCalColor(used: string[]): CalColorId {
+  const hit = CAL_COLORS.find((c) => !used.includes(c));
+  return hit ?? CAL_COLORS[used.length % CAL_COLORS.length]!;
+}
+
+export function mailboxTint(slot: number): CalColorId {
+  return Number(slot) === 2 ? "success" : "unread";
+}
+
 export interface CalProviderPreset {
   id: CalProviderId;
   label: string;
   kind: "google" | "caldav" | "ics";
   caldavUrl: string;
   hint: string;
-  color: "unread" | "success" | "warn" | "accent" | "danger";
+  color: CalColorId;
 }
 
 export const CAL_PRESETS: CalProviderPreset[] = [

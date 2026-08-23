@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Settings2,
   Star,
   Trash2,
 } from "lucide-react";
@@ -23,7 +24,10 @@ import { APP_NAME } from "@/lib/app";
 import { FOLDERS, type Folder } from "@/lib/mail/types";
 import { syncMailbox } from "@/lib/mail/mailbox";
 import { folderCounts, useMailStore } from "@/lib/mail/store";
+import { usePrefsStore } from "@/lib/mail/prefs";
 import { useRulesStore } from "@/lib/mail/rules";
+import { colorDot, useCalendarStore } from "@/lib/mail/calendar";
+import { mailboxTint } from "@/lib/mail/cal-presets";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -46,8 +50,18 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const setSplit = useMailStore((s) => s.setSplit);
   const setCommandOpen = useMailStore((s) => s.setCommandOpen);
   const setCalendarOpen = useMailStore((s) => s.setCalendarOpen);
+  const calendarOpen = useMailStore((s) => s.calendarOpen);
   const setRulesOpen = useMailStore((s) => s.setRulesOpen);
   const openCompose = useMailStore((s) => s.openCompose);
+  const boxes = useMailStore((s) => s.boxes);
+  const activeBoxId = useMailStore((s) => s.activeBoxId);
+  const switchBox = useMailStore((s) => s.switchBox);
+  const setConnectOpen = useMailStore((s) => s.setConnectOpen);
+  const source = useMailStore((s) => s.source);
+  const calAccounts = useCalendarStore((s) => s.accounts);
+  const hiddenCals = useCalendarStore((s) => s.hidden);
+  const toggleHidden = useCalendarStore((s) => s.toggleHidden);
+  const setCalConnectOpen = useCalendarStore((s) => s.setConnectOpen);
   const rules = useRulesStore((s) => s.rules);
   const counts = useMemo(() => folderCounts(threads), [threads, rules]);
 
@@ -57,7 +71,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   };
 
   return (
-    <aside className="flex h-full w-52 shrink-0 flex-col border-r border-border bg-panel">
+    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-panel">
       <div className="flex items-center justify-between px-3 pt-4 pb-3">
         <div className="flex items-baseline gap-2">
           <span className="text-lg font-semibold tracking-tight text-fg">{APP_NAME}</span>
@@ -90,63 +104,154 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </button>
 
       <nav className="mt-4 flex-1 overflow-y-auto px-2 scroll-thin">
-        <div className="flex items-center justify-between px-2 pb-1">
-          <p className="text-micro font-medium uppercase tracking-wider text-subtle">Inbox</p>
+        <p className="px-2 pb-1 text-micro font-medium uppercase tracking-wider text-subtle">Accounts</p>
+        {boxes.length === 0 ? (
           <button
             type="button"
-            onClick={() => go(() => setRulesOpen(true))}
-            className="text-micro text-subtle hover:text-fg"
+            onClick={() => go(() => setConnectOpen(true))}
+            className="flex h-9 w-full items-center gap-2 rounded-sm px-2 text-mail text-muted hover:bg-elevated hover:text-fg"
           >
-            Rules
+            <Plug className="size-3.5" />
+            <span className="flex-1 text-left">Connect mailbox</span>
           </button>
-        </div>
-        <SplitRow
-          active={folder === "inbox" && split === "focused"}
-          label="Focused"
-          count={counts.focused}
-          onClick={() => go(() => setSplit("focused"))}
-        />
-        <SplitRow
-          active={folder === "inbox" && split === "other"}
-          label="Other"
-          count={counts.other}
-          onClick={() => go(() => setSplit("other"))}
-        />
-
-        <p className="mt-4 px-2 pb-1 text-micro font-medium uppercase tracking-wider text-subtle">Mailbox</p>
-        {FOLDERS.filter((f) => f.id !== "inbox").map((f) => {
-          const Icon = ICONS[f.id];
-          const count = counts[f.id];
-          const active = folder === f.id;
-          return (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => go(() => setFolder(f.id))}
-              className={cn(
-                "flex h-9 w-full items-center gap-2 rounded-sm px-2 text-mail",
-                active ? "bg-select text-fg" : "text-muted hover:bg-elevated hover:text-fg",
-              )}
-            >
-              <Icon className="size-3.5" />
-              <span className="flex-1 text-left">{f.label}</span>
-              {count > 0 && <span className="tabular-nums text-micro text-subtle">{count}</span>}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="px-2 pb-1">
+        ) : (
+          boxes.map((b) => {
+            const active = !calendarOpen && b.id === activeBoxId;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() =>
+                  go(() => {
+                    switchBox(b.slot);
+                  })
+                }
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-mail",
+                  active ? "bg-select text-fg" : "text-muted hover:bg-elevated hover:text-fg",
+                )}
+              >
+                <span className={cn("size-2 shrink-0 rounded-full", colorDot(mailboxTint(b.slot)))} />
+                <span className="min-w-0 flex-1 text-left">
+                  <span className="block truncate">{b.label}</span>
+                  <span className="block truncate text-micro text-subtle">{b.email}</span>
+                </span>
+                <span className="font-mono text-micro text-subtle">{b.slot}</span>
+              </button>
+            );
+          })
+        )}
+        {source === "imap" && boxes.length < 2 && (
+          <button
+            type="button"
+            onClick={() => go(() => setConnectOpen(true))}
+            className="mt-0.5 flex h-8 w-full items-center gap-2 rounded-sm px-2 text-micro text-subtle hover:text-fg"
+          >
+            <Plug className="size-3" />
+            Add mailbox
+          </button>
+        )}
         <button
           type="button"
           onClick={() => go(() => setCalendarOpen(true))}
-          className="flex h-9 w-full items-center gap-2 rounded-sm px-2 text-mail text-muted hover:bg-elevated hover:text-fg"
+          className={cn(
+            "mt-1 flex h-9 w-full items-center gap-2 rounded-sm px-2 text-mail",
+            calendarOpen ? "bg-select text-fg" : "text-muted hover:bg-elevated hover:text-fg",
+          )}
         >
           <CalendarDays className="size-3.5" />
           <span className="flex-1 text-left">Calendar</span>
-          <span className="font-mono text-micro text-subtle">G C</span>
+          <span className="font-mono text-micro text-subtle">3</span>
         </button>
-      </div>
+        {calAccounts.length === 0 ? (
+          <button
+            type="button"
+            onClick={() =>
+              go(() => {
+                setCalendarOpen(true);
+                setCalConnectOpen(true);
+              })
+            }
+            className="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-micro text-subtle hover:text-fg"
+          >
+            <Plug className="size-3" />
+            Connect calendar
+          </button>
+        ) : (
+          calAccounts.map((a) => {
+            const on = !hiddenCals.includes(a.id);
+            return (
+              <button
+                key={a.id}
+                type="button"
+                title={on ? `Hide ${a.label}` : `Show ${a.label}`}
+                onClick={() =>
+                  go(() => {
+                    setCalendarOpen(true);
+                    if (hiddenCals.includes(a.id)) toggleHidden(a.id);
+                  })
+                }
+                className={cn(
+                  "flex h-8 w-full items-center gap-2 rounded-sm px-2 text-micro",
+                  calendarOpen && on ? "text-fg" : "text-subtle hover:text-fg",
+                )}
+              >
+                <span className={cn("size-1.5 shrink-0 rounded-full", colorDot(a.color), !on && "opacity-40")} />
+                <span className="min-w-0 flex-1 truncate text-left">{a.label}</span>
+              </button>
+            );
+          })
+        )}
+
+        {source === "imap" && (
+          <>
+            <div className="mt-4 flex items-center justify-between px-2 pb-1">
+              <p className="text-micro font-medium uppercase tracking-wider text-subtle">Inbox</p>
+              <button
+                type="button"
+                onClick={() => go(() => setRulesOpen(true))}
+                className="text-micro text-subtle hover:text-fg"
+              >
+                Rules
+              </button>
+            </div>
+            <SplitRow
+              active={!calendarOpen && folder === "inbox" && split === "focused"}
+              label="Focused"
+              count={counts.focused}
+              onClick={() => go(() => setSplit("focused"))}
+            />
+            <SplitRow
+              active={!calendarOpen && folder === "inbox" && split === "other"}
+              label="Other"
+              count={counts.other}
+              onClick={() => go(() => setSplit("other"))}
+            />
+
+            <p className="mt-4 px-2 pb-1 text-micro font-medium uppercase tracking-wider text-subtle">Mailbox</p>
+            {FOLDERS.filter((f) => f.id !== "inbox").map((f) => {
+              const Icon = ICONS[f.id];
+              const count = counts[f.id];
+              const active = !calendarOpen && folder === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => go(() => setFolder(f.id))}
+                  className={cn(
+                    "flex h-9 w-full items-center gap-2 rounded-sm px-2 text-mail",
+                    active ? "bg-select text-fg" : "text-muted hover:bg-elevated hover:text-fg",
+                  )}
+                >
+                  <Icon className="size-3.5" />
+                  <span className="flex-1 text-left">{f.label}</span>
+                  {count > 0 && <span className="tabular-nums text-micro text-subtle">{count}</span>}
+                </button>
+              );
+            })}
+          </>
+        )}
+      </nav>
 
       <AccountFooter onNavigate={onNavigate} />
     </aside>
@@ -160,10 +265,10 @@ function AccountFooter({ onNavigate }: { onNavigate?: () => void }) {
   const mailboxProvider = useMailStore((s) => s.mailboxProvider);
   const boxes = useMailStore((s) => s.boxes);
   const activeBoxId = useMailStore((s) => s.activeBoxId);
-  const switchBox = useMailStore((s) => s.switchBox);
   const setConnectOpen = useMailStore((s) => s.setConnectOpen);
   const setOmarchyOpen = useMailStore((s) => s.setOmarchyOpen);
   const setShortcutsOpen = useMailStore((s) => s.setShortcutsOpen);
+  const setSettingsOpen = usePrefsStore((s) => s.setSettingsOpen);
   const setSyncing = useMailStore((s) => s.setSyncing);
   const applyMailbox = useMailStore((s) => s.applyMailbox);
   const { user, isPending } = useCurrentUserState();
@@ -185,31 +290,18 @@ function AccountFooter({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="border-t border-border px-3 py-3">
-      <div className="flex gap-1">
-        {boxes.map((b) => (
-          <button
-            key={b.id}
-            type="button"
-            onClick={() => {
-              switchBox(b.slot);
-              onNavigate?.();
-            }}
-            aria-label={`${b.label} mailbox`}
-            className={cn(
-              "h-7 flex-1 rounded-sm px-1.5 text-micro",
-              b.id === activeBoxId ? "bg-select text-fg" : "text-subtle hover:text-fg",
-            )}
-          >
-            {b.slot} {b.label}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 text-mail text-fg">{me.name}</div>
-      <div className="truncate text-micro text-subtle">{me.email}</div>
+      {me.email ? (
+        <>
+          <div className="text-mail text-fg">{me.name || me.email}</div>
+          <div className="truncate text-micro text-subtle">{me.email}</div>
+        </>
+      ) : (
+        <div className="text-mail text-subtle">No mailbox connected</div>
+      )}
       <div className="mt-1 text-micro text-subtle">
         {source === "imap"
           ? `${mailboxProvider === "gmail" ? "Gmail" : mailboxProvider === "fastmail" ? "Fastmail" : mailboxProvider === "icloud" ? "iCloud" : "IMAP"} · live`
-          : "Demo inbox"}
+          : "Connect to see mail"}
       </div>
       <div className="mt-2 flex flex-col items-stretch gap-1">
         {source === "imap" ? (
@@ -239,6 +331,17 @@ function AccountFooter({ onNavigate }: { onNavigate?: () => void }) {
               ? "Add mailbox"
               : "Mailbox settings"
             : "Connect mailbox"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSettingsOpen(true);
+            onNavigate?.();
+          }}
+          className="inline-flex h-8 items-center gap-1.5 rounded-sm px-1 text-left text-micro text-muted hover:text-fg"
+        >
+          <Settings2 className="size-3" />
+          Settings
         </button>
         <button
           type="button"
