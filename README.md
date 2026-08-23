@@ -1,8 +1,8 @@
-# Omadash 0.4
+# Omadash 0.1
 
 Keyboard-first mail and calendar for [Omarchy](https://omarchy.org). Fast as a terminal client. Useful as Superhuman. Yours, because the code is.
 
-**Version 0.4.0 · MIT · free forever** · [Changelog](CHANGELOG.md)
+**Version 0.1.0 · MIT · free forever** · [Changelog](CHANGELOG.md)
 
 Omadash is one client for the inbox and the day. Three panes for mail, a month and a day agenda for the calendar, both driven from the home row. `J` / `K` to move, `E` to Done (it archives on the server), `C` to compose, `G` then `C` for the calendar, `⌘K` for everything else, `?` for the full map.
 

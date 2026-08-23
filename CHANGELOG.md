@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.4.0 — 2026-08-22
+## 0.1.0 — 2026-08-22
+
+First public release.
 
 Compose attachments, To: complete, and an inbox you can train.
 
@@ -8,8 +10,6 @@ Compose attachments, To: complete, and an inbox you can train.
 - To and Cc complete from people you’ve mailed. Tab or Enter accepts.
 - Editable Focused / Other rules. First match wins; unmatched keep the mailbox split.
 - Train from a thread: `Shift+I` Focused, `Shift+O` Other. Sidebar **Rules**, or ⌘K.
-
-## 0.3.0 — 2026-08-22
 
 Calendars that write back.
 
@@ -20,9 +20,7 @@ Calendars that write back.
 - Add and delete on writable calendars; mail and local events still work signed out
 - Sync (`R`), source chips, connect overlay after sign-in
 
-## 0.2.0 — 2026-08-22
-
-The 0.1 client, finished.
+The client, finished.
 
 - Thread summarize (`Y`) — Grok when signed in, local notes otherwise
 - Follow-up bounce — send with “Remind me”; it comes back unread if they don’t reply
@@ -34,9 +32,7 @@ The 0.1 client, finished.
 - Rewrite with Grok: shorter / warmer
 - Catppuccin, Kanagawa, and Rosé Pine palettes
 
-## 0.1.0 — 2026-08-22
-
-First public cut. MIT.
+First cut. MIT.
 
 - Keyboard-first three-pane client (J/K, E Done, C compose, ⌘K, ?)
 - IMAP/SMTP for Gmail, Fastmail, iCloud, generic hosts; two-way archive/star/unread

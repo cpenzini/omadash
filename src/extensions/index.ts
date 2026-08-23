@@ -1,5 +1,5 @@
 /**
- * Public seams for Omadash 0.4.
+ * Public seams for Omadash 0.1.
  * Fork, edit the source modules, open a pull request.
  * See ./README.md and docs/EXTENDING.md.
  */

@@ -1,4 +1,4 @@
-# Extending Omadash 0.4
+# Extending Omadash 0.1
 
 Omadash is source, not a plugin host. You change a file, you get a feature. These are the seams that were left obvious on purpose.
 

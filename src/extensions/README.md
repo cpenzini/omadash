@@ -1,6 +1,6 @@
 # Extension surface
 
-Omadash 0.4 has no plugin loader. You extend it by editing the modules below
+Omadash 0.1 has no plugin loader. You extend it by editing the modules below
 and sending a pull request. This folder exists so a clone has one obvious
 place to start.
 
