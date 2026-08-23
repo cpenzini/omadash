@@ -13,6 +13,9 @@ export type ThemeId =
   | "everforest"
   | "gruvbox"
   | "tokyo"
+  | "catppuccin"
+  | "kanagawa"
+  | "rosepine"
   | "white";
 
 export type ResolvedTheme = Exclude<ThemeId, "auto">;
@@ -28,11 +31,22 @@ export const THEMES: {
   { id: "everforest", label: "Everforest", hint: "Moss" },
   { id: "gruvbox", label: "Gruvbox", hint: "Warm" },
   { id: "tokyo", label: "Tokyo Night", hint: "Neon" },
+  { id: "catppuccin", label: "Catppuccin", hint: "Mocha" },
+  { id: "kanagawa", label: "Kanagawa", hint: "Wave" },
+  { id: "rosepine", label: "Rosé Pine", hint: "Dawn-dark" },
   { id: "white", label: "White", hint: "Paper" },
 ];
 
 const RESOLVED = new Set<ResolvedTheme>([
-  "omadash", "nord", "everforest", "gruvbox", "tokyo", "white",
+  "omadash",
+  "nord",
+  "everforest",
+  "gruvbox",
+  "tokyo",
+  "catppuccin",
+  "kanagawa",
+  "rosepine",
+  "white",
 ]);
 
 function prefersLight() {
@@ -61,7 +75,9 @@ function readStored(): ThemeId {
   try {
     const raw = localStorage.getItem(THEME_KEY);
     if (raw === "auto" || RESOLVED.has(raw as ResolvedTheme)) return raw as ThemeId;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return "omadash";
 }
 
@@ -84,7 +100,11 @@ export const useThemeStore = create<ThemeState>((set) => ({
     set({ id, resolved: resolveTheme(id) });
   },
   setTheme: (id) => {
-    try { localStorage.setItem(THEME_KEY, id); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(THEME_KEY, id);
+    } catch {
+      /* ignore */
+    }
     applyTheme(id);
     set({ id, resolved: resolveTheme(id), open: false });
   },

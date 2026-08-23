@@ -23,6 +23,13 @@ export function formatReceiptTime(iso: string): string {
   return format(d, "MMM d, h:mm a");
 }
 
+export function formatEventWhen(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  if (isToday(d)) return format(d, "'Today' · h:mm a");
+  return format(d, "EEE, MMM d · h:mm a");
+}
+
 export function threadPreview(thread: Thread) {
   const last = thread.messages[thread.messages.length - 1];
   return last;
@@ -99,4 +106,30 @@ export function formatPeople(people: Person[]): string {
 
 export function minutesBetween(a: string, b: string): number {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000);
+}
+
+export function isWaiting(thread: Thread): boolean {
+  if (thread.folder === "trash") return false;
+  return thread.labels.includes("Waiting") || Boolean(thread.followUpUntil);
+}
+
+export function localNotes(thread: Thread): string {
+  return thread.messages
+    .map((m) => `• ${m.from.name || m.from.email}: ${snippetOf(m.body, 140)}`)
+    .join("\n");
+}
+
+export function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function dataUrlPayload(
+  dataUrl: string | undefined,
+): { mime: string; contentBase64: string } | null {
+  if (!dataUrl) return null;
+  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!m) return null;
+  return { mime: m[1]!, contentBase64: m[2]! };
 }

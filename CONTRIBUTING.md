@@ -1,6 +1,6 @@
 # Contributing to Omadash
 
-Omadash 0.1 exists so people on Omarchy can own a fast mail client. The useful patches are the ones you needed this morning.
+Omadash exists so people on Omarchy can own a fast mail client. The useful patches are the ones you needed this morning.
 
 ## Ground rules
 
@@ -15,10 +15,13 @@ Omadash 0.1 exists so people on Omarchy can own a fast mail client. The useful p
 These are the smallest useful forks. Each is documented in [docs/EXTENDING.md](docs/EXTENDING.md).
 
 1. A new IMAP preset (Proton, mailbox.org, a university host).
-2. An Omarchy theme that already lives on the desktop (Catppuccin, Kanagawa, Rose Pine).
+2. An Omarchy theme that already lives on the desktop.
 3. A snippet you actually type.
 4. A key that is missing from `?`.
 5. HTML sanitizer cases that still leak a tracker.
+6. A calendar pin for a thread that already has a time in the body.
+7. A CalDAV preset (mailbox.org, a university DAV).
+8. A default inbox rule (a domain that always belongs in Other).
 
 ## How to work
 
@@ -28,14 +31,15 @@ npm run dev
 npm run typecheck
 ```
 
-Hit `?` and use the demo inbox. Connect a throwaway mailbox before you touch `imap.server.ts`.
+Hit `?` and use the demo inbox. Connect a throwaway mailbox before you touch `imap.server.ts`. Train a thread with `Shift+O` / `Shift+I` before you edit `rules.ts`.
 
 ## Code shape
 
 - Actions live in `src/lib/mail/store.ts`. Keys live in `src/lib/mail/hotkeys.ts`. If you add one, add the other, then add a row to `shortcut-sheet.tsx`.
+- Split rules live in `src/lib/mail/rules.ts`. First match wins; do not rewrite stored `focused`.
 - Server functions in `mailbox.ts` always go through `authMiddleware` and query by `context.userId`. Never a client-sent user id.
 - Themes are CSS variables, not one-off class names.
-- Do not introduce a plugin runtime in 0.1. Edit the files. If 0.2 needs plugins, that is a separate design.
+- Do not introduce a plugin runtime. Edit the files.
 
 ## Commit style
 
