@@ -188,6 +188,10 @@ function waitForPopupToken(popup: Window): Promise<string | null> {
       if (event.origin !== origin) return;
       const data = event.data as PopupMessage | undefined;
       if (!data || data.source !== "grok-auth-popup") return;
+      if (data.error) {
+        settle(null);
+        return;
+      }
       settle(data.token ?? null);
     };
     // Fallback when the user dismisses the popup. Grace period lets the

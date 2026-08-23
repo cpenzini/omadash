@@ -6,7 +6,8 @@ export function laterToday() {
 }
 
 export function tonight() {
-  return setMinutes(setHours(new Date(), 18), 0);
+  const d = setMinutes(setHours(new Date(), 18), 0);
+  return d.getTime() > Date.now() ? d : addDays(d, 1);
 }
 
 export function tomorrowMorning() {

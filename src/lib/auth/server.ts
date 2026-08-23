@@ -191,6 +191,12 @@ export const auth = betterAuth({
   // never merges them into one user — they stay separate identities.
   account: {
     encryptOAuthTokens: true,
+    storeStateStrategy: "database",
+    // The preview popup 302s off-origin (app → broker → Google). Chrome's
+    // bounce tracking drops the extra CSRF cookie on that hop, which Better
+    // Auth then reports as `state_mismatch`. The random `state` in the
+    // verification table is still required on the callback.
+    skipStateCookieCheck: true,
     accountLinking: {
       enabled: true,
       trustedProviders: GROK_PROVIDERS.map((p) => p.providerId),

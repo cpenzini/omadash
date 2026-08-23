@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME } from "@/lib/app";
 import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
@@ -14,6 +15,8 @@ function Login() {
   const { connect, calendar } = Route.useSearch();
   const afterX = calendar ? "/?calendar=1" : connect ? "/?connect=1" : "/";
   const afterGoogle = calendar ? "/?calendar=1&google=1" : connect ? "/?connect=1&google=1" : "/?google=1";
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
   return (
     <main className="grid min-h-dvh place-items-center bg-bg px-5 text-fg">
@@ -27,22 +30,37 @@ function Login() {
           X only signs you in — attach mail and calendar after.
         </p>
 
+        {err ? <p className="mt-4 text-mail text-danger">{err}</p> : null}
+
         {authEnabled ? (
           <div className="mt-6 space-y-2">
             {GROK_PROVIDERS.map((p) => (
               <button
                 key={p.providerId}
                 type="button"
-                onClick={() =>
-                  signIn(p.providerId, { callbackURL: p.idp === "google" ? afterGoogle : afterX })
-                }
+                disabled={busy !== null}
+                onClick={() => {
+                  setErr(null);
+                  setBusy(p.providerId);
+                  void signIn(p.providerId, {
+                    callbackURL: p.idp === "google" ? afterGoogle : afterX,
+                  }).catch((e: unknown) => {
+                    const raw = e instanceof Error ? e.message : "";
+                    setErr(
+                      /state_mismatch|cancelled or failed/i.test(raw)
+                        ? "Google sign-in was interrupted. Allow pop-ups and try again."
+                        : raw || "Sign-in failed. Try again.",
+                    );
+                    setBusy(null);
+                  });
+                }}
                 className={
                   p.idp === "google"
-                    ? "flex h-11 w-full items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg hover:opacity-90"
-                    : "flex h-11 w-full items-center justify-center rounded-md border border-border bg-surface text-sm font-medium text-fg hover:bg-elevated"
+                    ? "flex h-11 w-full items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg hover:opacity-90 disabled:opacity-60"
+                    : "flex h-11 w-full items-center justify-center rounded-md border border-border bg-surface text-sm font-medium text-fg hover:bg-elevated disabled:opacity-60"
                 }
               >
-                Continue with {p.label}
+                {busy === p.providerId ? "Opening Google…" : `Continue with ${p.label}`}
               </button>
             ))}
           </div>

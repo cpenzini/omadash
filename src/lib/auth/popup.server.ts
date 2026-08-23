@@ -95,13 +95,32 @@ export async function handleAuthPopupRequest(request: Request): Promise<Response
       });
     }
 
-    // 302 to the broker (which headlessly forwards to Google/X). Forward any
-    // Set-Cookie (OAuth state / PKCE) so the callback can complete in this popup.
-    const headers = new Headers({ location, "cache-control": "no-store" });
+    // 200 + JS redirect (not a 302) so Set-Cookie lands on a real document.
+    // A 302 straight to the broker looks like a tracking bounce and Chrome
+    // drops the OAuth state cookie, which comes back as `state_mismatch`.
+    const headers = new Headers({
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    });
     for (const cookie of apiRes.headers.getSetCookie()) {
       headers.append("set-cookie", cookie);
     }
-    return new Response(null, { status: 302, headers });
+    const dest = JSON.stringify(location);
+    return new Response(
+      `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Continue</title>
+</head>
+<body>
+<p>Continue to sign in…</p>
+<script>location.replace(${dest})</script>
+</body>
+</html>`,
+      { status: 200, headers },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "oauth_init_threw";
     return completionResponse({
