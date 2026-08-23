@@ -21,6 +21,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { APP_NAME } from "@/lib/app";
 import { counterpart, formatListTime, snippetOf, threadPreview } from "@/lib/mail/format";
 import { SNIPPETS } from "@/lib/mail/snippets";
 import { useMailStore } from "@/lib/mail/store";
@@ -268,13 +269,13 @@ export function CommandPalette() {
               <Inbox className="size-3.5" /> Three panes
             </Item>
             <Item
-              keywords={["omarchy", "install", "webapp", "mako"]}
+              keywords={["omarchy", "install", "webapp", "app", "pwa", "home screen"]}
               onSelect={() => {
                 setOmarchyOpen(true);
                 setOpen(false);
               }}
             >
-              Install on Omarchy
+              Install {APP_NAME}
             </Item>
             {boxes.map((b) => (
               <Item

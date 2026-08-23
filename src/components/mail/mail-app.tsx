@@ -12,6 +12,7 @@ import { useRulesStore } from "@/lib/mail/rules";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useMailStore } from "@/lib/mail/store";
 import { usePrefsStore } from "@/lib/mail/prefs";
+import { initInstallCapture } from "@/lib/mail/install";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./command-palette";
 import { Compose } from "./compose";
@@ -82,6 +83,7 @@ export function MailApp() {
   const googleLinkStarted = useRef(false);
 
   useEffect(() => {
+    initInstallCapture();
     hydrate();
     useRulesStore.getState().hydrate();
     usePrefsStore.getState().hydrate();

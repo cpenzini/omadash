@@ -68,7 +68,7 @@ const GROUPS = [
       ["Inbox rules", "From ⌘K"],
       ["Connect", "From ⌘K"],
       ["Settings", "From ⌘K or ,"],
-      ["Install on Omarchy", "From ⌘K"],
+      ["Install", "From ⌘K or Settings"],
     ],
   },
   {

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import {
   Bell,
   CalendarDays,
   Columns2,
+  Download,
   Keyboard,
   Mail,
   Palette,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { APP_NAME, APP_VERSION } from "@/lib/app";
 import { applyMailLayout, usePrefsStore, type MailLayout } from "@/lib/mail/prefs";
+import { canPromptInstall, isStandalone, promptInstall, subscribeInstall } from "@/lib/mail/install";
 import { useMailStore } from "@/lib/mail/store";
 import { colorDot, TZ_OPTIONS, useCalendarStore } from "@/lib/mail/calendar";
 import { CAL_COLORS } from "@/lib/mail/cal-presets";
@@ -33,6 +35,7 @@ const SECTIONS = [
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "alerts", label: "Notifications", icon: Bell },
   { id: "mail", label: "Mail", icon: Rows3 },
+  { id: "install", label: "Install", icon: Download },
 ] as const;
 
 type Section = (typeof SECTIONS)[number]["id"];
@@ -98,6 +101,7 @@ export function Settings() {
             {section === "calendar" && <CalendarSection />}
             {section === "alerts" && <AlertsSection />}
             {section === "mail" && <MailSection />}
+            {section === "install" && <InstallSection />}
           </div>
         </div>
       </div>
@@ -475,6 +479,50 @@ function MailSection() {
           Open reference
           <Kbd>?</Kbd>
         </button>
+      </div>
+    </div>
+  );
+}
+
+function InstallSection() {
+  const setOmarchyOpen = useMailStore((s) => s.setOmarchyOpen);
+  const setSettings = usePrefsStore((s) => s.setSettingsOpen);
+  const ready = useSyncExternalStore(subscribeInstall, canPromptInstall, () => false);
+  const standalone = useSyncExternalStore(subscribeInstall, isStandalone, () => false);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-medium text-fg">This computer</h3>
+        <p className="mt-1 text-mail text-muted text-pretty">
+          {APP_NAME} is a web app. Install it and it sits next to the browser. No terminal.
+        </p>
+        {standalone ? (
+          <p className="mt-3 text-mail text-fg">Already installed. Launch it from the app list.</p>
+        ) : (
+          <Button
+            variant="primary"
+            className="mt-3"
+            onClick={() => {
+              if (ready) {
+                void promptInstall().then((r) => {
+                  if (r === "accepted") toast(`${APP_NAME} is an app on this computer`);
+                });
+              } else {
+                setSettings(false);
+                setOmarchyOpen(true);
+              }
+            }}
+          >
+            {ready ? `Install ${APP_NAME}` : "Show install steps"}
+          </Button>
+        )}
+      </div>
+      <div>
+        <h3 className="text-sm font-medium text-fg">Omarchy</h3>
+        <p className="mt-1 text-mail text-muted text-pretty">
+          Super + Alt + Space → Install → Web App. Name it {APP_NAME}. That is the whole install.
+        </p>
       </div>
     </div>
   );

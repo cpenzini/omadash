@@ -37,7 +37,8 @@ First public release. Mail and calendar on the same keys. Empty until you connec
 
 **The rest**
 
-- Settings window: layout, accounts, appearance, calendar zone, notifications, remote images.
+- Settings window: layout, accounts, appearance, calendar zone, notifications, remote images, Install.
+- Install is a one-click app on Chromium, or Super + Alt + Space → Install → Web App on Omarchy. No terminal.
 - Mail send/parse stack is Nodemailer 9.0.5 and mailparser 3.9.15 (nested linkify-it and html-to-text pinned past the high advisories).
 - Omarchy themes: Steel, Nord, Everforest, Gruvbox, Tokyo Night, Catppuccin, Kanagawa, Rosé Pine, White, Auto.
 - Install-on-Omarchy overlay. Compose via `/?compose=1`. Desktop notifications for mail and upcoming events.

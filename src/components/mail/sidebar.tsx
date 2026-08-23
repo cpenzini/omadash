@@ -362,7 +362,7 @@ function AccountFooter({ onNavigate }: { onNavigate?: () => void }) {
           }}
           className="inline-flex h-8 items-center rounded-sm px-1 text-left text-micro text-muted hover:text-fg"
         >
-          Install on Omarchy
+          Install {APP_NAME}
         </button>
         {isPending ? (
           <div className="h-8 w-full animate-pulse rounded-sm bg-surface" />

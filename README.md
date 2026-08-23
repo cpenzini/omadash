@@ -1,14 +1,28 @@
 # Omadash 0.1
 
-Keyboard-first mail and calendar for [Omarchy](https://omarchy.org). Fast as a terminal client. Useful as Superhuman. Yours, because the code is.
+Mail and calendar on the home row. Install it the way you install a browser: open it, click Install, sign in. No terminal.
 
 **Version 0.1.0 · MIT · free forever** · [Changelog](CHANGELOG.md)
 
-Omadash is one client for the inbox and the day. Mail opens as a compact list — one line per thread — and Enter opens the message, the way Superhuman works. If you want the list beside the reading pane, that is a setting. Calendar is a full window, not a popup: day, week, work week, month, and agenda. You move both with the same keys.
+Omadash is one app for the inbox and the day, built for [Omarchy](https://omarchy.org). Mail opens as a compact list — one line per thread — and Enter opens the message, the way Superhuman works. If you want the list beside the reading pane, that is a setting. Calendar is a full window: day, week, work week, month, and agenda. You move both with the same keys.
 
-The point of the home row is that you never leave. `J` and `K` move. `E` marks a thread done and archives it on the server. `C` composes. `N` takes a date out of a mail and files it on a calendar. `1` and `2` are mailboxes, `3` is the calendar, and `` ` `` cycles through them. Comma opens settings. `⌘K` is search and commands. `?` is the map.
+Nothing is shown until it is yours. Connect a mailbox to see mail. Connect a calendar to see the day.
 
-Nothing is shown until it is yours. Connect a mailbox to see mail. Connect a calendar to see the day. Same idea as Mail and Calendar on a phone — no sample inbox, no sample week.
+## Get Omadash
+
+You do not need git, npm, or a command line.
+
+1. Open Omadash in your browser.
+2. Click **Install Omadash** in the sidebar, or in Settings → Install.
+   - On Omarchy: Super + Alt + Space → Install → Web App. Name it Omadash.
+   - On a phone: Share → Add to Home Screen.
+   - In Chrome or Edge: the install icon in the address bar.
+3. Sign in with Google.
+4. Connect a mailbox. The list stays empty until you do.
+
+It then lives next to your other apps. Super + M is optional, from Settings → Install.
+
+The clone-and-run path is only for people who want to change the code.
 
 ## Why it exists
 
@@ -18,7 +32,7 @@ Omadash takes the other side. If a thing happens more than twice a day, it has a
 
 Privacy is the default. Remote images stay blocked until you say so. Known tracking pixels never load, even then. App passwords, not your real account password. Credentials sit on the server, scoped to your login.
 
-It is meant to live on Omarchy. Nord, Everforest, Gruvbox, Tokyo Night, Catppuccin, Kanagawa, Rosé Pine, a steel dark, a paper light, or follow the system. Install it as a web app and bind `Super + M`. The source is small enough to hold in your head: one store, one keymap, one IMAP module, one calendar door. If you can read TypeScript you can change the client.
+It is meant to live on Omarchy. Nord, Everforest, Gruvbox, Tokyo Night, Catppuccin, Kanagawa, Rosé Pine, a steel dark, a paper light, or follow the system. The source is small enough to hold in your head: one store, one keymap, one IMAP module, one calendar door.
 
 ## Mail
 
@@ -40,9 +54,9 @@ You can connect as many calendars as you want. Each account has its own color; c
 
 ## Connect
 
-Continue with Google is identity first, then one extra approval that attaches Gmail and Calendar together. Or connect a mailbox with an [app password](https://myaccount.google.com/apppasswords) and the calendar separately from `3`, then `P`. Sign-in keeps those secrets per-user.
+Continue with Google signs you in, then asks Google for Gmail and Calendar. Or connect a mailbox with an [app password](https://myaccount.google.com/apppasswords) and the calendar separately from `3`, then `P`. Sign-in keeps those secrets per-user.
 
-Settings (`,`) is layout, accounts, appearance, calendar zone, notifications, and whether remote images load. Themes live there too, or `G` then `A`.
+Settings (`,`) is layout, accounts, appearance, calendar zone, notifications, remote images, and Install. Themes live there too, or `G` then `A`.
 
 ## Keys
 
@@ -81,7 +95,9 @@ On the calendar: `D` / `W` / `F` / `M` / `A` views, `V` cycles them, `Z` second 
 
 Inbox rules live in the sidebar and in `⌘K`. Snippets expand in compose with a semicolon (`;thanks`).
 
-## Run it
+## From source
+
+Only if you want to change Omadash, not just use it.
 
 ```bash
 git clone https://github.com/cpenzini/omadash.git
@@ -90,15 +106,13 @@ npm install
 npm run dev
 ```
 
-The panes stay empty until you connect. That is the point.
-
 ```bash
 npm test
 npm run typecheck
 npm run build
 ```
 
-`npm test` covers the mail and calendar logic, then the running app (empty until connect, settings, calendar, keys). `npm run test:browser` is the app pass on its own.
+`npm test` covers the mail and calendar logic, then the running app (empty until connect, settings, calendar, install, keys). `npm run test:browser` is the app pass on its own.
 
 ## Stack
 

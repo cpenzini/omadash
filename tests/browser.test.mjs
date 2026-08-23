@@ -58,6 +58,22 @@ test("settings opens from comma", async (t) => {
   assert.match(text, /Two panes/);
   assert.match(text, /Three panes/);
   assert.match(text, /Accounts/);
+  assert.match(text, /Install/);
+  await page.keyboard.press("Escape");
+  await dialog.waitFor({ state: "hidden", timeout: 4000 });
+});
+
+test("install dialog does not ask for a terminal", async (t) => {
+  if (!page) t.skip();
+  await page.keyboard.press("Escape");
+  const trigger = page.getByRole("button", { name: /Install Omadash/ }).first();
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: /Install Omadash/ });
+  await dialog.waitFor({ state: "visible", timeout: 4000 });
+  const text = await dialog.innerText();
+  assert.match(text, /No terminal/i);
+  assert.match(text, /Web App/i);
+  assert.doesNotMatch(text, /npm |git clone/i);
   await page.keyboard.press("Escape");
   await dialog.waitFor({ state: "hidden", timeout: 4000 });
 });
