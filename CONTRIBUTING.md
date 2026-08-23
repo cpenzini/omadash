@@ -29,6 +29,7 @@ These are the smallest useful forks. Each is documented in [docs/EXTENDING.md](d
 ```bash
 npm install
 npm run dev
+npm test
 npm run typecheck
 ```
 

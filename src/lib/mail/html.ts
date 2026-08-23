@@ -45,7 +45,7 @@ const ALLOWED = new Set([
   "SUB",
 ]);
 
-function isTrackerUrl(url: string) {
+export function isTrackerUrl(url: string) {
   return TRACKER.test(url);
 }
 

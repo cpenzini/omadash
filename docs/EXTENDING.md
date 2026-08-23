@@ -65,6 +65,10 @@ Omarchy palettes are the intended source. Match the Alacritty / waybar colors pe
 2. Put the action on the store in [`src/lib/mail/store.ts`](../src/lib/mail/store.ts) if it mutates mail.
 3. Document it in [`src/components/mail/shortcut-sheet.tsx`](../src/components/mail/shortcut-sheet.tsx).
 
+## Tests
+
+`npm test` is the product suite. Unit tests in [`tests/`](../tests/) cover dates, inbox rules, calendar views, ICS, HTML trackers, prefs, and snippets. [`tests/browser.test.mjs`](../tests/browser.test.mjs) drives the running app: empty until connect, settings, calendar, compose, the palette, and the keymap. Keep a new behavior in one of those files, or it will drift.
+
 If it does not appear on `?`, it does not exist.
 
 ## Add a folder or split

@@ -22,7 +22,7 @@ const DEFAULTS: PrefsData = {
   showRemoteImages: false,
 };
 
-function parsePrefs(raw: unknown): PrefsData {
+export function parsePrefs(raw: unknown): PrefsData {
   if (!raw || typeof raw !== "object") return { ...DEFAULTS };
   const o = raw as Record<string, unknown>;
   return {

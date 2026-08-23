@@ -145,6 +145,7 @@ function yearOf(raw?: string): number | undefined {
 
 function push(
   hits: DateHit[],
+  now: Date,
   text: string,
   day: Date | null,
   timeRaw?: string,
@@ -152,9 +153,9 @@ function push(
 ) {
   if (!day || Number.isNaN(day.getTime())) return;
   const { start, end, allDay } = applyTime(day, timeRaw, endRaw);
-  const tooOld = start.getTime() < Date.now() - 48 * 3600_000;
+  const tooOld = start.getTime() < now.getTime() - 48 * 3600_000;
   if (tooOld) return;
-  const tooFar = start.getTime() > Date.now() + 400 * 24 * 3600_000;
+  const tooFar = start.getTime() > now.getTime() + 400 * 24 * 3600_000;
   if (tooFar) return;
   const key = `${start.toISOString()}|${allDay ? "d" : "t"}`;
   if (hits.some((h) => `${h.start.toISOString()}|${h.allDay ? "d" : "t"}` === key)) return;
@@ -228,7 +229,7 @@ function scan(text: string, now: Date): DateHit[] {
       let timeRaw = m[spec.time];
       const word = m[1]?.toLowerCase();
       if (word === "tonight" && !timeRaw) timeRaw = "evening";
-      push(hits, m[0], spec.day(m), timeRaw, spec.end != null ? m[spec.end] : undefined);
+      push(hits, now, m[0], spec.day(m), timeRaw, spec.end != null ? m[spec.end] : undefined);
       if (hits.length >= 12) break;
     }
   }
@@ -240,8 +241,8 @@ function scan(text: string, now: Date): DateHit[] {
     if (!t) continue;
     let day = startOfDay(now);
     const start = atHour(day, t.h, t.m);
-    if (start.getTime() < Date.now() - 10 * 60_000) day = addDays(day, 1);
-    push(hits, tm[0], day, tm[1], tm[2]);
+    if (start.getTime() < now.getTime() - 10 * 60_000) day = addDays(day, 1);
+    push(hits, now, tm[0], day, tm[1], tm[2]);
   }
 
   return hits
