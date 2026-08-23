@@ -5,6 +5,8 @@
 import { toast } from "sonner";
 import { buildSeed } from "./seed";
 import { applyImap, type MailboxStatus } from "./mailbox";
+import { isWaiting } from "./format";
+import { classifyThread } from "./rules";
 import {
   DEMO_ME,
   DEMO_PERSONAL,
@@ -27,7 +29,7 @@ export const PERSONAL_KEY = "omadash-mail-personal-v1";
 export const IMAP_KEY = "omadash-imap-v1";
 export const ONBOARD_KEY = "omadash-onboarded-v1";
 export const ACTIVE_KEY = "omadash-active-box-v1";
-export const VERSION = 1;
+export const VERSION = 2;
 
 export const DEMO_BOXES: MailboxInfo[] = [
   {
@@ -57,6 +59,7 @@ export interface MailState {
   hydrated: boolean;
   threads: Thread[];
   selectedId: string | null;
+  checkedIds: string[];
   folder: Folder;
   split: Split;
   search: string;
@@ -64,6 +67,10 @@ export interface MailState {
   commandOpen: boolean;
   shortcutsOpen: boolean;
   snoozeOpen: boolean;
+  calendarOpen: boolean;
+  labelOpen: boolean;
+  sendLaterOpen: boolean;
+  rulesOpen: boolean;
   onboarding: boolean;
   pendingG: boolean;
   undoStack: UndoItem[];
@@ -78,6 +85,8 @@ export interface MailState {
   boxes: MailboxInfo[];
   activeBoxId: string | null;
   omarchyOpen: boolean;
+  summaryById: Record<string, string>;
+  summarizingId: string | null;
 
   hydrate: () => void;
   persist: () => void;
@@ -96,18 +105,29 @@ export interface MailState {
   setCommandOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
   setSnoozeOpen: (open: boolean) => void;
+  setCalendarOpen: (open: boolean) => void;
+  setLabelOpen: (open: boolean) => void;
+  setSendLaterOpen: (open: boolean) => void;
+  setRulesOpen: (open: boolean) => void;
+  trainSplit: (split: Split) => void;
   setPendingG: (v: boolean) => void;
   dismissOnboarding: () => void;
   setMobilePane: (pane: "list" | "read") => void;
+  toggleCheck: (id?: string) => void;
+  clearChecks: () => void;
 
   toggleStar: (id?: string) => void;
   toggleUnread: (id?: string) => void;
   done: (id?: string) => void;
   trash: (id?: string) => void;
+  mute: (id?: string) => void;
   snooze: (until: Date, id?: string) => void;
   restoreSnoozes: () => void;
+  restoreFollowUps: () => string[];
+  restoreScheduled: () => number;
   setLabel: (label: string, id?: string) => void;
   undo: () => string | null;
+  summarize: () => Promise<void>;
 
   openCompose: (draft?: Partial<ComposeDraft>) => void;
   closeCompose: (saveDraft?: boolean) => void;
@@ -115,6 +135,7 @@ export interface MailState {
   reply: (all?: boolean) => void;
   forward: () => void;
   send: () => Promise<string | null>;
+  sendLater: (at: Date) => Promise<string | null>;
   insertSnippet: (id: string) => void;
 }
 
@@ -149,11 +170,13 @@ export function filterVisible(
     .filter((t) => {
       if (!matches(t, search)) return false;
       if (folder === "starred") return t.starred && t.folder !== "trash";
+      if (folder === "waiting") return isWaiting(t);
       if (folder === "inbox") {
         if (t.folder !== "inbox") return false;
         if (t.snoozeUntil && new Date(t.snoozeUntil).getTime() > now) return false;
         if (search.trim()) return true;
-        return split === "focused" ? t.focused : !t.focused;
+        const focused = classifyThread(t);
+        return split === "focused" ? focused : !focused;
       }
       return t.folder === folder;
     })
@@ -163,14 +186,18 @@ export function filterVisible(
 export function folderCounts(threads: Thread[]) {
   const now = Date.now();
   const inbox = threads.filter(
-    (t) => t.folder === "inbox" && !(t.snoozeUntil && new Date(t.snoozeUntil).getTime() > now),
+    (t) =>
+      t.folder === "inbox" &&
+      !t.muted &&
+      !(t.snoozeUntil && new Date(t.snoozeUntil).getTime() > now),
   );
   const unread = (list: Thread[]) => list.filter((t) => t.unread).length;
   return {
     inbox: unread(inbox),
-    focused: unread(inbox.filter((t) => t.focused)),
-    other: unread(inbox.filter((t) => !t.focused)),
+    focused: unread(inbox.filter((t) => classifyThread(t))),
+    other: unread(inbox.filter((t) => !classifyThread(t))),
     starred: threads.filter((t) => t.starred && t.folder !== "trash").length,
+    waiting: threads.filter((t) => isWaiting(t)).length,
     drafts: threads.filter((t) => t.folder === "drafts").length,
     sent: threads.filter((t) => t.folder === "sent").length,
     snoozed: threads.filter((t) => t.folder === "snoozed").length,
@@ -192,12 +219,15 @@ export function mergeRemote(local: Thread[], remote: Thread[]): Thread[] {
       starred: l.starred,
       unread: held ? l.unread : r.unread,
       snoozeUntil: l.snoozeUntil,
+      followUpUntil: l.followUpUntil,
+      sendAt: l.sendAt,
+      muted: l.muted,
       labels: l.labels.length ? l.labels : r.labels,
     };
   });
   for (const l of local) {
     if (remoteIds.has(l.id)) continue;
-    if (l.folder === "done" || l.folder === "trash" || l.folder === "snoozed") merged.push(l);
+    if (l.folder === "done" || l.folder === "trash" || l.folder === "snoozed" || l.sendAt) merged.push(l);
   }
   return merged;
 }
@@ -269,6 +299,12 @@ export function snapshot(threads: Thread[], ids: string[]): Thread[] {
 
 export function nid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function actionIds(state: { checkedIds: string[]; selectedId: string | null }, id?: string): string[] {
+  if (id) return [id];
+  if (state.checkedIds.length) return [...state.checkedIds];
+  return state.selectedId ? [state.selectedId] : [];
 }
 
 const SEEDED = buildSeed();

@@ -15,7 +15,7 @@ export function notifyNewMail(prev: Thread[], next: Thread[]) {
   if (typeof Notification === "undefined") return;
   if (Notification.permission !== "granted") return;
   const seen = new Set(prev.map((t) => t.id));
-  const fresh = next.filter((t) => t.unread && t.folder === "inbox" && !seen.has(t.id));
+  const fresh = next.filter((t) => t.unread && t.folder === "inbox" && !t.muted && !seen.has(t.id));
   if (fresh.length === 0) return;
   const first = fresh[0]!;
   const body =

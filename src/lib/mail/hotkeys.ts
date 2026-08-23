@@ -3,6 +3,7 @@
  * Document every new binding in shortcut-sheet.tsx.
  */
 import { useThemeStore } from "@/lib/theme";
+import { useCalendarStore } from "./calendar";
 import type { MailState } from "./store";
 
 function isQuestionKey(e: KeyboardEvent) {
@@ -24,6 +25,7 @@ export function handleHotkey(
   const key = e.key;
   const lower = key.length === 1 ? key.toLowerCase() : key;
   const inField = typingInField(e.target);
+  const calConnect = useCalendarStore.getState().connectOpen;
 
   if (key === "Escape") {
     if (store.compose) {
@@ -43,6 +45,26 @@ export function handleHotkey(
       store.setSnoozeOpen(false);
       return true;
     }
+    if (calConnect) {
+      useCalendarStore.getState().setConnectOpen(false);
+      return true;
+    }
+    if (store.calendarOpen) {
+      store.setCalendarOpen(false);
+      return true;
+    }
+    if (store.labelOpen) {
+      store.setLabelOpen(false);
+      return true;
+    }
+    if (store.rulesOpen) {
+      store.setRulesOpen(false);
+      return true;
+    }
+    if (store.sendLaterOpen) {
+      store.setSendLaterOpen(false);
+      return true;
+    }
     if (store.connectOpen) {
       store.setConnectOpen(false);
       return true;
@@ -53,6 +75,10 @@ export function handleHotkey(
     }
     if (store.omarchyOpen) {
       store.setOmarchyOpen(false);
+      return true;
+    }
+    if (store.checkedIds.length) {
+      store.clearChecks();
       return true;
     }
     if (store.onboarding) {
@@ -82,7 +108,9 @@ export function handleHotkey(
   }
 
   if (inField || store.commandOpen || store.compose || store.connectOpen) return false;
+  if (calConnect) return true;
   if (useThemeStore.getState().open || store.omarchyOpen) return true;
+  if (store.calendarOpen || store.labelOpen || store.sendLaterOpen || store.rulesOpen) return true;
   if (store.shortcutsOpen) {
     if (isQuestionKey(e)) {
       store.setShortcutsOpen(false);
@@ -95,12 +123,14 @@ export function handleHotkey(
     store.setPendingG(false);
     if (lower === "i") store.setFolder("inbox");
     else if (lower === "s") store.setFolder("starred");
+    else if (lower === "w") store.setFolder("waiting");
     else if (lower === "d") store.setFolder("drafts");
     else if (lower === "t") store.setFolder("sent");
     else if (lower === "h") store.setFolder("snoozed");
     else if (lower === "e") store.setFolder("done");
     else if (key === "#") store.setFolder("trash");
     else if (lower === "a") useThemeStore.getState().setOpen(true);
+    else if (lower === "c") store.setCalendarOpen(true);
     else if (lower === "1") store.switchBox(1);
     else if (lower === "2") store.switchBox(2);
     else if (lower === "g") store.move(-999);
@@ -113,34 +143,92 @@ export function handleHotkey(
     return true;
   }
 
-  if (lower === "j" || key === "ArrowDown") store.move(1);
-  else if (lower === "k" || key === "ArrowUp") store.move(-1);
-  else if (key === "Enter" || lower === "o") {
+  if (lower === "j" || key === "ArrowDown") {
+    store.move(1);
+    return true;
+  }
+  if (lower === "k" || key === "ArrowUp") {
+    store.move(-1);
+    return true;
+  }
+  if (e.shiftKey && (lower === "o" || lower === "i")) {
+    store.trainSplit(lower === "i" ? "focused" : "other");
+    return true;
+  }
+  if (key === "Enter" || (lower === "o" && !e.shiftKey)) {
     if (store.selectedId) store.setMobilePane("read");
-  } else if (lower === "e") {
+    return true;
+  }
+  if (lower === "e") {
     store.done();
     toast("Done · U to undo");
-  } else if (key === "#") {
+    return true;
+  }
+  if (key === "#") {
     store.trash();
     toast("Trashed · U to undo");
-  } else if (lower === "s") store.toggleStar();
-  else if (lower === "r") store.reply(e.shiftKey);
-  else if (lower === "f") store.forward();
-  else if (lower === "c") store.openCompose();
-  else if (lower === "u") {
+    return true;
+  }
+  if (lower === "s") {
+    store.toggleStar();
+    return true;
+  }
+  if (lower === "x") {
+    store.toggleCheck();
+    return true;
+  }
+  if (lower === "m") {
+    store.mute();
+    toast("Muted · U to undo");
+    return true;
+  }
+  if (lower === "l") {
+    store.setLabelOpen(true);
+    return true;
+  }
+  if (lower === "y") {
+    void store.summarize();
+    return true;
+  }
+  if (lower === "r") {
+    store.reply(e.shiftKey);
+    return true;
+  }
+  if (lower === "f") {
+    store.forward();
+    return true;
+  }
+  if (lower === "c") {
+    store.openCompose();
+    return true;
+  }
+  if (lower === "u") {
     const label = store.undo();
     if (label) toast(`Undid ${label.toLowerCase()}`);
-  } else if (lower === "z") {
+    return true;
+  }
+  if (lower === "z") {
     store.toggleUnread();
     toast("Toggled unread");
-  } else if (lower === "h") store.setSnoozeOpen(true);
-  else if (isQuestionKey(e)) store.setShortcutsOpen(!store.shortcutsOpen);
-  else if (key === ",") {
+    return true;
+  }
+  if (lower === "h") {
+    store.setSnoozeOpen(true);
+    return true;
+  }
+  if (isQuestionKey(e)) {
+    store.setShortcutsOpen(!store.shortcutsOpen);
+    return true;
+  }
+  if (key === ",") {
     e.preventDefault();
     useThemeStore.getState().setOpen(true);
-  } else if (key === "/") {
+    return true;
+  }
+  if (key === "/") {
     e.preventDefault();
     store.setCommandOpen(true);
-  } else return false;
-  return true;
+    return true;
+  }
+  return false;
 }

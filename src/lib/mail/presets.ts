@@ -22,7 +22,7 @@ export const MAIL_PRESETS: MailProviderPreset[] = [
     imapPort: 993,
     smtpHost: "smtp.gmail.com",
     smtpPort: 587,
-    hint: "Gmail rejects your normal password. Create an App Password under Google Account → Security.",
+    hint: "Continue with Google for inbox and calendar. An app password still works if you prefer.",
   },
   {
     id: "fastmail",

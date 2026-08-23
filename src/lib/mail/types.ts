@@ -1,6 +1,7 @@
 export type Folder =
   | "inbox"
   | "starred"
+  | "waiting"
   | "drafts"
   | "sent"
   | "snoozed"
@@ -55,6 +56,9 @@ export interface Thread {
   focused: boolean;
   labels: string[];
   snoozeUntil?: string;
+  followUpUntil?: string;
+  sendAt?: string;
+  muted?: boolean;
   messages: Message[];
 }
 
@@ -68,6 +72,8 @@ export interface ComposeDraft {
   tracking: boolean;
   remind: boolean;
   showCc: boolean;
+  sendAt?: string | null;
+  attachments: Attachment[];
 }
 
 export type ImapOp =
@@ -101,6 +107,7 @@ export interface UndoItem {
   threads: Thread[];
   removeIds?: string[];
   imap?: ImapCommand;
+  imapMany?: ImapCommand[];
 }
 
 export type MailSlot = 1 | 2;
@@ -131,6 +138,7 @@ export const ME = DEMO_ME;
 export const FOLDERS: { id: Folder; label: string; hint: string }[] = [
   { id: "inbox", label: "Inbox", hint: "G then I" },
   { id: "starred", label: "Starred", hint: "G then S" },
+  { id: "waiting", label: "Waiting", hint: "G then W" },
   { id: "drafts", label: "Drafts", hint: "G then D" },
   { id: "sent", label: "Sent", hint: "G then T" },
   { id: "snoozed", label: "Snoozed", hint: "G then H" },
