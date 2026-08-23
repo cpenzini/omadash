@@ -7,9 +7,9 @@ import { LATER_OPTIONS, tonight, tomorrowMorning } from "../src/lib/mail/later.t
 import { parsePrefs } from "../src/lib/mail/prefs.ts";
 import { SNIPPETS } from "../src/lib/mail/snippets.ts";
 
-test("identity is 0.1.0", () => {
+test("identity is 0.2.0", () => {
   assert.equal(APP_NAME, "Omadash");
-  assert.equal(APP_VERSION, "0.1.0");
+  assert.equal(APP_VERSION, "0.2.0");
 });
 
 test("prefs default to two panes and blocked remote images", () => {
