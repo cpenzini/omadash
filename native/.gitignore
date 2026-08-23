@@ -1,0 +1,24 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Linux / desktop scaffolding from `flutter create`
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# Secrets
+*.jks
+key.properties
+.env

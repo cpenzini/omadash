@@ -1,3 +1,19 @@
+# Omadash 0.2
+
+**Native Linux for Omarchy is in [`native/`](native/).** Flutter + `flutter_omarchy`. Compile to a GTK binary — no Electron.
+
+```bash
+git clone https://github.com/cpenzini/omadash.git
+cd omadash/native
+chmod +x tool/bootstrap.sh
+./tool/bootstrap.sh
+flutter build linux --release
+```
+
+Bind `Super+M` to `build/linux/x64/release/bundle/omadash`. IMAP, SMTP, and your Omarchy theme live in that binary. The web app below is the same mailbox UI.
+
+---
+
 # Omadash 0.1
 
 Mail and calendar on the home row. Install it the way you install a browser: open it, click Install, sign in. No terminal.

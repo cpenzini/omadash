@@ -1,3 +1,7 @@
+## 0.2.0 — Flutter native
+
+Omadash compiles as a GTK Linux binary with flutter_omarchy. Theme follows colors.toml. Live IMAP/SMTP via enough_mail. See native/README.md.
+
 # Changelog
 
 ## 0.1.0 — 2026-08-23

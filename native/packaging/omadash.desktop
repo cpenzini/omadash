@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Omadash
+Comment=Mail on the home row
+Exec=omadash
+Icon=mail-app
+Terminal=false
+Type=Application
+Categories=Network;Email;Office;
+StartupNotify=true
