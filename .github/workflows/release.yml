@@ -28,7 +28,7 @@ jobs:
         run: |
           chmod +x tool/bootstrap.sh tool/package.sh packaging/install.sh
           ./tool/bootstrap.sh
-          flutter test
+          flutter test test/store_test.dart
           flutter build linux --release
           ./tool/package.sh
       - name: Upload artifacts

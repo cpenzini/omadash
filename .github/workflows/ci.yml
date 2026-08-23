@@ -21,7 +21,7 @@ jobs:
       - name: Dependencies
         run: flutter pub get
       - name: Test
-        run: flutter test
+        run: flutter test test/store_test.dart
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 

@@ -26,6 +26,12 @@ fi
 echo "→ flutter create (linux, macos, windows)"
 flutter create --platforms=linux,macos,windows --org dev.omarchy --project-name omadash --no-overwrite .
 
+# flutter create writes a MyApp widget_test that is not this app.
+if [[ -f test/widget_test.dart ]] && grep -q 'MyApp' test/widget_test.dart; then
+  echo "→ remove stub test/widget_test.dart"
+  rm -f test/widget_test.dart
+fi
+
 APP_CC=linux/runner/my_application.cc
 if [[ -f "$APP_CC" ]]; then
   echo "→ strip GTK header bar"
