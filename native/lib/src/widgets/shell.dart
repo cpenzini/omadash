@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_omarchy/flutter_omarchy.dart';
+import 'package:flutter_omarchy/flutter_omarchy.dart' hide Split;
 import 'package:intl/intl.dart';
 
 import '../app.dart';
@@ -591,7 +591,7 @@ class _ReadingPane extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  SelectableText(
+                  Text(
                     m.body,
                     style: theme.text.normal.copyWith(height: 1.5),
                   ),

@@ -38,7 +38,8 @@ void main() {
 
   test('star and trash', () {
     final s = store();
-    s.select(s.visible.first.id);
+    final unstarred = s.visible.firstWhere((t) => !t.starred);
+    s.select(unstarred.id);
     final id = s.selectedId!;
     s.star();
     expect(s.threads.firstWhere((t) => t.id == id).starred, isTrue);

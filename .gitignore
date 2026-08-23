@@ -13,3 +13,6 @@ AGENTS.md
 AGENTS.project.md
 *.log
 .nitro/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies

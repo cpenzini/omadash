@@ -1,28 +1,29 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { APP_NAME } from "@/lib/app";
+import { APP_NAME, APP_RELEASE } from "@/lib/app";
 import { canPromptInstall, isStandalone, promptInstall, subscribeInstall } from "@/lib/mail/install";
 import { requestMailNotifications } from "@/lib/mail/notify";
 import { useMailStore } from "@/lib/mail/store";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "./kbd";
 
+const BIND = `bindd = SUPER, M, ${APP_NAME}, exec, omadash`;
+
 export function OmarchyInstall() {
   const open = useMailStore((s) => s.omarchyOpen);
   const setOpen = useMailStore((s) => s.setOmarchyOpen);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"bind" | "url" | null>(null);
   const [busy, setBusy] = useState(false);
   const origin = useMemo(() => (typeof window === "undefined" ? "" : window.location.origin), []);
   const ready = useSyncExternalStore(subscribeInstall, canPromptInstall, () => false);
   const standalone = useSyncExternalStore(subscribeInstall, isStandalone, () => false);
-  const bind = `bindd = SUPER, M, ${APP_NAME}, exec, omarchy-launch-webapp ${APP_NAME}`;
 
   if (!open) return null;
 
-  function copyUrl() {
-    void navigator.clipboard.writeText(origin).then(() => {
-      setCopied(true);
-      toast("Address copied");
+  function copy(text: string, which: "bind" | "url") {
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(which);
+      toast("Copied");
     });
   }
 
@@ -34,7 +35,7 @@ export function OmarchyInstall() {
       toast(`${APP_NAME} is an app on this computer`);
       setOpen(false);
     } else if (result === "unavailable") {
-      toast("Use Install → Web App from the Omarchy menu");
+      toast("On Omarchy, download the Linux binary from GitHub Releases");
     }
   }
 
@@ -54,82 +55,74 @@ export function OmarchyInstall() {
           <Kbd>Esc</Kbd>
         </div>
         <p className="text-mail text-muted text-pretty">
-          Put it next to your other apps. No terminal, no git, no local server.
+          On Omarchy we ship a compiled GTK binary. Download it, run install.sh, bind Super + M. Source is on
+          GitHub. This browser window is the same mailbox UI.
         </p>
-
-        {standalone ? (
-          <p className="mt-4 rounded-md border border-border bg-surface px-3 py-2.5 text-mail text-fg">
-            It is already installed. Open it from the app list like a browser.
-          </p>
-        ) : (
-          <Button
-            variant="primary"
-            className="mt-4 w-full"
-            disabled={busy}
-            onClick={() => {
-              if (ready) void installHere();
-              else copyUrl();
-            }}
-          >
-            {busy ? "Installing…" : ready ? `Install ${APP_NAME}` : "Copy the address, then Install → Web App"}
-          </Button>
-        )}
 
         <ol className="mt-5 space-y-3 text-mail text-muted">
           <li>
-            <p className="font-medium text-fg">On Omarchy</p>
+            <p className="font-medium text-fg">1. Linux binary</p>
             <p className="mt-0.5 text-pretty">
-              Super + Alt + Space → Install → Web App. Name it {APP_NAME}. Paste this address if it asks:
+              Grab <span className="text-fg">omadash-*-linux-x64.tar.gz</span> from Releases, extract,{" "}
+              <span className="font-mono text-micro text-fg">./install.sh</span>.
             </p>
+            <a
+              href={APP_RELEASE}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1.5 inline-flex rounded-md border border-border bg-surface px-2.5 py-2 font-mono text-micro text-fg hover:bg-select"
+            >
+              github.com/cpenzini/omadash/releases
+            </a>
+          </li>
+          <li>
+            <p className="font-medium text-fg">2. Super + M</p>
             <button
               type="button"
-              onClick={copyUrl}
+              onClick={() => copy(BIND, "bind")}
               className="mt-1.5 block w-full truncate rounded-md border border-border bg-surface px-2.5 py-2 text-left font-mono text-micro text-fg hover:bg-select"
             >
-              {origin || "this page"}
+              {BIND}
             </button>
           </li>
           <li>
-            <p className="font-medium text-fg">On a phone or tablet</p>
-            <p className="mt-0.5 text-pretty">
-              Open this page in the browser, then Share → Add to Home Screen (Apple) or the install icon in the
-              address bar (Android).
-            </p>
-          </li>
-          <li>
-            <p className="font-medium text-fg">Notifications</p>
-            <p className="mt-0.5">Once, so new mail and upcoming events can ping the desktop.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => {
-                void requestMailNotifications().then((ok) => {
-                  toast(ok ? "Notifications on" : "Notifications blocked");
-                });
-              }}
-            >
-              Allow notifications
-            </Button>
+            <p className="font-medium text-fg">This browser (optional)</p>
+            {standalone ? (
+              <p className="mt-0.5">Already installed as a web app on this computer.</p>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                disabled={busy}
+                onClick={() => {
+                  if (ready) void installHere();
+                  else copy(origin, "url");
+                }}
+              >
+                {busy ? "Installing…" : ready ? "Install this page as a web app" : "Copy this address"}
+              </Button>
+            )}
           </li>
         </ol>
 
-        <details className="mt-4 text-mail text-muted">
-          <summary className="cursor-pointer font-medium text-fg">Optional: Super + M</summary>
-          <p className="mt-1.5 text-pretty">
-            Only if you want a key. Paste this one line into Hyprland bindings, then Super + M opens {APP_NAME}.
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={() => {
+            void requestMailNotifications().then((ok) => {
+              toast(ok ? "Notifications on" : "Notifications blocked");
+            });
+          }}
+        >
+          Allow notifications
+        </Button>
+        {copied && (
+          <p className="mt-3 text-micro text-subtle">
+            Copied {copied === "bind" ? "binding" : "address"}
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard.writeText(bind).then(() => toast("Binding copied"));
-            }}
-            className="mt-1.5 block w-full truncate rounded-md border border-border bg-surface px-2.5 py-2 text-left font-mono text-micro text-fg hover:bg-select"
-          >
-            {bind}
-          </button>
-        </details>
-        {copied && <p className="mt-3 text-micro text-subtle">Address copied</p>}
+        )}
       </div>
     </div>
   );

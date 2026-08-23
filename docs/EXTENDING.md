@@ -1,6 +1,43 @@
-# Extending Omadash 0.1
+# Extending Omadash 0.2
 
 Omadash is source, not a plugin host. You change a file, you get a feature. These are the seams that were left obvious on purpose.
+
+There are two trees. Native (`native/`) is what we compile. Web (`src/`) is the hosted client. A mail provider that only lands in one of them is half-done.
+
+## Native — add a mail provider
+
+Edit [`native/lib/src/imap.dart`](../native/lib/src/imap.dart), the `presets` list.
+
+```dart
+ProviderPreset(
+  id: 'proton',
+  label: 'Proton',
+  imapHost: '127.0.0.1',
+  imapPort: 1143,
+  smtpHost: '127.0.0.1',
+  smtpPort: 1025,
+  smtpSecure: false,
+  hint: 'Bridge, not your mailbox password.',
+),
+```
+
+The connect overlay reads `presets`. IMAP mutations (move, seen) live in `MailboxGateway` in the same file. Unusual special-use folders: extend `move`.
+
+## Native — add a key
+
+1. Handle it in [`native/lib/src/keys.dart`](../native/lib/src/keys.dart).
+2. Put the action on `MailStore` in [`native/lib/src/store.dart`](../native/lib/src/store.dart).
+3. Document it on the shortcut overlay in [`native/lib/src/widgets/shell.dart`](../native/lib/src/widgets/shell.dart) and in [`docs/KEYS.md`](KEYS.md).
+
+## Native — calendar
+
+`buildCalendarSeed` in [`native/lib/src/seed.dart`](../native/lib/src/seed.dart) is a local week. CalDAV belongs in a new `native/lib/src/caldav.dart` that `MailStore` hydrates the same way IMAP does. The web client already has the protocol in [`src/lib/mail/caldav.server.ts`](../src/lib/mail/caldav.server.ts) — copy the semantics, not the HTTP-from-the-server shape.
+
+---
+
+# Web (0.1 client)
+
+The rest of this file is the web seams. Same product, browser runtime.
 
 ## Add a mail provider
 

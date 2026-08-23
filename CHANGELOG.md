@@ -1,12 +1,31 @@
-## 0.2.0 — Flutter native
-
-Omadash compiles as a GTK Linux binary with flutter_omarchy. Theme follows colors.toml. Live IMAP/SMTP via enough_mail. See native/README.md.
-
 # Changelog
+
+## 0.2.0 — 2026-08-23
+
+First compiled native release. Omadash is a GTK Linux binary. We distribute that binary and the MIT source — nothing else.
+
+**Native Linux (`native/`)**
+
+- Flutter + [`flutter_omarchy`](https://pub.dev/packages/flutter_omarchy). No Electron, no browser chrome.
+- Theme follows `~/.local/state/omarchy/current/theme/colors.toml` (Tokyo Night fallback).
+- Superhuman keys on the home row. Command palette (`Ctrl+K` / `/`). Keyboard sheet (`?`).
+- Live IMAP/SMTP via `enough_mail` (Gmail, Fastmail, iCloud, generic). App password, stored in libsecret.
+- Demo mailbox (`alex@omarchy.dev`) so the keys work offline on first launch.
+- `tool/bootstrap.sh` creates the Linux runner and strips the GTK title bar. `--install` writes a desktop entry.
+- `packaging/install.sh` installs a release tarball to `~/.local`.
+- GitHub Actions compiles `omadash-<version>-linux-x64.tar.gz` on every `v*` tag.
+
+**Distribution**
+
+- README leads with the compiled binary.
+- Docs: install, keys, architecture, extending, contributing.
+- `isAttachment` compile break against `enough_mail` 2.1.7 fixed; unseen flags now call `uidMarkUnseen`.
+
+The web client from 0.1.0 is unchanged as a playable mailbox UI. CalDAV / Google calendar two-way still lives there. Native calendar is a local day list in this cut.
 
 ## 0.1.0 — 2026-08-23
 
-First public release. Mail and calendar on the same keys. Empty until you connect.
+First public web release. Mail and calendar on the same keys. Empty until you connect.
 
 **Empty until you connect**
 

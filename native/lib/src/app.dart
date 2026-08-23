@@ -1,4 +1,4 @@
-import 'package:flutter_omarchy/flutter_omarchy.dart';
+import 'package:flutter_omarchy/flutter_omarchy.dart' hide Split;
 
 import 'store.dart';
 import 'widgets/shell.dart';

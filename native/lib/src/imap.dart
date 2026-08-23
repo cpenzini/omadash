@@ -187,9 +187,9 @@ class MailboxGateway {
     if (client == null) return;
     final seq = MessageSequence.fromId(uid, isUid: true);
     if (seen) {
-      await client.uidStore(seq, [r'\Seen']);
+      await client.uidMarkSeen(seq);
     } else {
-      await client.uidStore(seq, [r'\Seen']);
+      await client.uidMarkUnseen(seq);
     }
   }
 
@@ -277,10 +277,15 @@ class MailboxGateway {
     final attachments = <Attachment>[];
     try {
       for (final info in msg.findContentInfo()) {
-        if (info.isAttachment) {
+        final disposition = info.contentDisposition?.disposition;
+        final named = (info.fileName ?? '').isNotEmpty;
+        final attached = disposition == ContentDisposition.attachment ||
+            (named && disposition != ContentDisposition.inline);
+        if (attached) {
+          final bytes = info.size;
           attachments.add(Attachment(
             name: info.fileName ?? 'attachment',
-            size: '',
+            size: bytes == null ? '' : '$bytes',
           ));
         }
       }
