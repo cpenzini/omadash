@@ -1,0 +1,17 @@
+/build*/
+/.state/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+client_secret*.json
+google-client.json
+.env
+.env.*
+*.log
+*.user
+*.swp
+.DS_Store
+/*-preview*.png
+/native-preview.png
+/native-thread.png

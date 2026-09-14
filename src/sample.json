@@ -1,0 +1,1133 @@
+{
+  "accounts": [
+    {
+      "id": "work",
+      "name": "Work",
+      "email": "alex@northstar.example",
+      "color": "#bb7046"
+    },
+    {
+      "id": "personal",
+      "name": "Personal",
+      "email": "alex@example.net",
+      "color": "#6d83a3"
+    }
+  ],
+  "splits": [
+    {
+      "id": "important",
+      "name": "Important",
+      "rule": "label:important"
+    },
+    {
+      "id": "calendar",
+      "name": "Calendar",
+      "rule": "label:calendar"
+    },
+    {
+      "id": "docs",
+      "name": "Docs",
+      "rule": "label:docs"
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "rule": ""
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread-0",
+      "sender": "Maya Chen",
+      "email": "maya.chen@example.org",
+      "subject": "The next chapter for Northstar",
+      "snippet": "I took another pass at the launch plan. A smaller first release feels right.",
+      "labels": [
+        "important"
+      ],
+      "account": "work",
+      "count": 4,
+      "time": "09:42",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Maya Chen",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-0-message-0",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-0.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-0-message-1",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "maya.chen@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-0.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Maya Chen",
+          "time": "7:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-0-message-2",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T10:15:00-04:00",
+          "messageId": "<thread-0.2@sample.omadash.local>"
+        },
+        {
+          "sender": "Maya Chen",
+          "time": "09:42",
+          "body": "I took another pass at the launch plan. A smaller first release feels right.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nMaya",
+          "id": "thread-0-message-3",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T11:15:00-04:00",
+          "messageId": "<thread-0.3@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-1",
+      "sender": "Daniel Brooks",
+      "email": "daniel.brooks@example.org",
+      "subject": "A few thoughts before Monday",
+      "snippet": "The prototype is looking sharp. Three things I would love to talk through.",
+      "labels": [
+        "important",
+        "review"
+      ],
+      "account": "work",
+      "count": 3,
+      "time": "09:28",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Daniel Brooks",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-1-message-0",
+          "from": "Daniel Brooks <daniel.brooks@example.org>",
+          "fromEmail": "daniel.brooks@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-1.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-1-message-1",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "daniel.brooks@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-1.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Daniel Brooks",
+          "time": "09:28",
+          "body": "The prototype is looking sharp. Three things I would love to talk through.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nDaniel",
+          "id": "thread-1-message-2",
+          "from": "Daniel Brooks <daniel.brooks@example.org>",
+          "fromEmail": "daniel.brooks@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T10:15:00-04:00",
+          "messageId": "<thread-1.2@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-2",
+      "sender": "Sofia Patel",
+      "email": "sofia.patel@example.org",
+      "subject": "Re: Design partnership",
+      "snippet": "Absolutely. Let’s make time next week to walk through the experience together.",
+      "labels": [
+        "important"
+      ],
+      "account": "work",
+      "count": 5,
+      "time": "09:16",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Sofia Patel",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-2-message-0",
+          "from": "Sofia Patel <sofia.patel@example.org>",
+          "fromEmail": "sofia.patel@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-2.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-2-message-1",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "sofia.patel@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-2.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Sofia Patel",
+          "time": "7:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-2-message-2",
+          "from": "Sofia Patel <sofia.patel@example.org>",
+          "fromEmail": "sofia.patel@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T10:15:00-04:00",
+          "messageId": "<thread-2.2@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "6:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-2-message-3",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "sofia.patel@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T11:15:00-04:00",
+          "messageId": "<thread-2.3@sample.omadash.local>"
+        },
+        {
+          "sender": "Sofia Patel",
+          "time": "09:16",
+          "body": "Absolutely. Let’s make time next week to walk through the experience together.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nSofia",
+          "id": "thread-2-message-4",
+          "from": "Sofia Patel <sofia.patel@example.org>",
+          "fromEmail": "sofia.patel@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T12:15:00-04:00",
+          "messageId": "<thread-2.4@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-3",
+      "sender": "Noah Williams",
+      "email": "noah.williams@example.org",
+      "subject": "September planning notes",
+      "snippet": "Sharing the numbers ahead of our catch-up. We have a little more room to experiment.",
+      "labels": [
+        "important",
+        "planning"
+      ],
+      "account": "work",
+      "count": 2,
+      "time": "08:54",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Noah Williams",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-3-message-0",
+          "from": "Noah Williams <noah.williams@example.org>",
+          "fromEmail": "noah.williams@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-3.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Noah Williams",
+          "time": "08:54",
+          "body": "Sharing the numbers ahead of our catch-up. We have a little more room to experiment.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nNoah",
+          "id": "thread-3-message-1",
+          "from": "Noah Williams <noah.williams@example.org>",
+          "fromEmail": "noah.williams@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-3.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-4",
+      "sender": "Emma Wilson",
+      "email": "emma.wilson@example.org",
+      "subject": "Dinner on Thursday?",
+      "snippet": "Found a little place by the river. Does 7 work for you?",
+      "labels": [
+        "important"
+      ],
+      "account": "personal",
+      "count": 2,
+      "time": "08:31",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Emma Wilson",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-4-message-0",
+          "from": "Emma Wilson <emma.wilson@example.org>",
+          "fromEmail": "emma.wilson@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-4.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Emma Wilson",
+          "time": "08:31",
+          "body": "Found a little place by the river. Does 7 work for you?\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nEmma",
+          "id": "thread-4-message-1",
+          "from": "Emma Wilson <emma.wilson@example.org>",
+          "fromEmail": "emma.wilson@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-4.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-5",
+      "sender": "Oliver Park",
+      "email": "oliver.park@example.org",
+      "subject": "The tiny details make the difference",
+      "snippet": "The new keyboard flow is lovely. I wrote down a couple of things I noticed.",
+      "labels": [
+        "important",
+        "feedback"
+      ],
+      "account": "work",
+      "count": 3,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Oliver Park",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-5-message-0",
+          "from": "Oliver Park <oliver.park@example.org>",
+          "fromEmail": "oliver.park@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-5.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-5-message-1",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "oliver.park@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-5.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Oliver Park",
+          "time": "Yesterday",
+          "body": "The new keyboard flow is lovely. I wrote down a couple of things I noticed.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nOliver",
+          "id": "thread-5-message-2",
+          "from": "Oliver Park <oliver.park@example.org>",
+          "fromEmail": "oliver.park@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T10:15:00-04:00",
+          "messageId": "<thread-5.2@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-6",
+      "sender": "Isabel Rivera",
+      "email": "isabel.rivera@example.org",
+      "subject": "Introduction: Jamie ↔ Alex",
+      "snippet": "You two are thinking about very similar problems. I think you’ll enjoy meeting.",
+      "labels": [
+        "important"
+      ],
+      "account": "work",
+      "count": 2,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Isabel Rivera",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-6-message-0",
+          "from": "Isabel Rivera <isabel.rivera@example.org>",
+          "fromEmail": "isabel.rivera@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-6.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Isabel Rivera",
+          "time": "Yesterday",
+          "body": "You two are thinking about very similar problems. I think you’ll enjoy meeting.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nIsabel",
+          "id": "thread-6-message-1",
+          "from": "Isabel Rivera <isabel.rivera@example.org>",
+          "fromEmail": "isabel.rivera@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-6.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-7",
+      "sender": "Ethan Kim",
+      "email": "ethan.kim@example.org",
+      "subject": "Re: A quieter kind of software",
+      "snippet": "Exactly this. Fewer interruptions, more room to do the work that matters.",
+      "labels": [
+        "important"
+      ],
+      "account": "personal",
+      "count": 4,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Ethan Kim",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-7-message-0",
+          "from": "Ethan Kim <ethan.kim@example.org>",
+          "fromEmail": "ethan.kim@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-7.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-7-message-1",
+          "from": "Alex Morgan <alex@example.net>",
+          "fromEmail": "alex@example.net",
+          "to": [
+            "ethan.kim@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-7.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Ethan Kim",
+          "time": "7:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-7-message-2",
+          "from": "Ethan Kim <ethan.kim@example.org>",
+          "fromEmail": "ethan.kim@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T10:15:00-04:00",
+          "messageId": "<thread-7.2@sample.omadash.local>"
+        },
+        {
+          "sender": "Ethan Kim",
+          "time": "Yesterday",
+          "body": "Exactly this. Fewer interruptions, more room to do the work that matters.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nEthan",
+          "id": "thread-7-message-3",
+          "from": "Ethan Kim <ethan.kim@example.org>",
+          "fromEmail": "ethan.kim@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T11:15:00-04:00",
+          "messageId": "<thread-7.3@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-8",
+      "sender": "Harper Reed",
+      "email": "harper.reed@example.org",
+      "subject": "Friday’s product review",
+      "snippet": "Here is the invitation for our weekly review. Bring the latest build.",
+      "labels": [
+        "calendar",
+        "important"
+      ],
+      "account": "work",
+      "count": 2,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Harper Reed",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-8-message-0",
+          "from": "Harper Reed <harper.reed@example.org>",
+          "fromEmail": "harper.reed@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-8.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Harper Reed",
+          "time": "Yesterday",
+          "body": "Here is the invitation for our weekly review. Bring the latest build.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nHarper",
+          "id": "thread-8-message-1",
+          "from": "Harper Reed <harper.reed@example.org>",
+          "fromEmail": "harper.reed@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-8.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-9",
+      "sender": "Google Calendar",
+      "email": "google.calendar@example.org",
+      "subject": "Accepted: Product direction",
+      "snippet": "Maya has accepted your invitation for Monday at 10:00 AM.",
+      "labels": [
+        "calendar"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "09:05",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Google Calendar",
+          "time": "09:05",
+          "body": "Maya has accepted your invitation for Monday at 10:00 AM.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nGoogle",
+          "id": "thread-9-message-0",
+          "from": "Google Calendar <google.calendar@example.org>",
+          "fromEmail": "google.calendar@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-9.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-10",
+      "sender": "Liam Foster",
+      "email": "liam.foster@example.org",
+      "subject": "Coffee and a catch-up",
+      "snippet": "Invitation: Wednesday, 9:30 AM. The usual spot?",
+      "labels": [
+        "calendar"
+      ],
+      "account": "personal",
+      "count": 2,
+      "time": "08:20",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Liam Foster",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-10-message-0",
+          "from": "Liam Foster <liam.foster@example.org>",
+          "fromEmail": "liam.foster@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-10.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Liam Foster",
+          "time": "08:20",
+          "body": "Invitation: Wednesday, 9:30 AM. The usual spot?\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nLiam",
+          "id": "thread-10-message-1",
+          "from": "Liam Foster <liam.foster@example.org>",
+          "fromEmail": "liam.foster@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-10.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-11",
+      "sender": "Ava Martinez",
+      "email": "ava.martinez@example.org",
+      "subject": "Team focus session",
+      "snippet": "Invitation: Thursday, 2:00 PM. A quiet hour to work through the roadmap.",
+      "labels": [
+        "calendar"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Ava Martinez",
+          "time": "Yesterday",
+          "body": "Invitation: Thursday, 2:00 PM. A quiet hour to work through the roadmap.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nAva",
+          "id": "thread-11-message-0",
+          "from": "Ava Martinez <ava.martinez@example.org>",
+          "fromEmail": "ava.martinez@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-11.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-12",
+      "sender": "Maya Chen",
+      "email": "maya.chen@example.org",
+      "subject": "Launch narrative — comments",
+      "snippet": "Maya left 3 comments on Launch narrative. “This paragraph is the story.”",
+      "labels": [
+        "docs",
+        "review"
+      ],
+      "account": "work",
+      "count": 2,
+      "time": "09:33",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Maya Chen",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-12-message-0",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-12.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Maya Chen",
+          "time": "09:33",
+          "body": "Maya left 3 comments on Launch narrative. “This paragraph is the story.”\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nMaya",
+          "id": "thread-12-message-1",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2026-09-13T09:15:00-04:00",
+          "messageId": "<thread-12.1@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-13",
+      "sender": "Daniel Brooks",
+      "email": "daniel.brooks@example.org",
+      "subject": "Shared with you: Product principles",
+      "snippet": "A short document to keep us honest as we build.",
+      "labels": [
+        "docs"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "08:40",
+      "unread": true,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Daniel Brooks",
+          "time": "08:40",
+          "body": "A short document to keep us honest as we build.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nDaniel",
+          "id": "thread-13-message-0",
+          "from": "Daniel Brooks <daniel.brooks@example.org>",
+          "fromEmail": "daniel.brooks@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-13.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-14",
+      "sender": "Sofia Patel",
+      "email": "sofia.patel@example.org",
+      "subject": "September metrics",
+      "snippet": "The latest figures are ready for your review.",
+      "labels": [
+        "docs"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Sofia Patel",
+          "time": "Yesterday",
+          "body": "The latest figures are ready for your review.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nSofia",
+          "id": "thread-14-message-0",
+          "from": "Sofia Patel <sofia.patel@example.org>",
+          "fromEmail": "sofia.patel@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-14.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-15",
+      "sender": "The Browser",
+      "email": "the.browser@example.org",
+      "subject": "Five things worth your attention",
+      "snippet": "This week: good work, quiet tools, and the art of paying attention.",
+      "labels": [
+        "newsletter"
+      ],
+      "account": "personal",
+      "count": 1,
+      "time": "08:00",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "The Browser",
+          "time": "08:00",
+          "body": "This week: good work, quiet tools, and the art of paying attention.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nThe",
+          "id": "thread-15-message-0",
+          "from": "The Browser <the.browser@example.org>",
+          "fromEmail": "the.browser@example.org",
+          "to": [
+            "alex@example.net"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-15.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-16",
+      "sender": "GitHub",
+      "email": "github@example.org",
+      "subject": "Your weekly activity summary",
+      "snippet": "A few updates from the projects you follow.",
+      "labels": [
+        "updates"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "GitHub",
+          "time": "Yesterday",
+          "body": "A few updates from the projects you follow.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nGitHub",
+          "id": "thread-16-message-0",
+          "from": "GitHub <github@example.org>",
+          "fromEmail": "github@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-16.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-17",
+      "sender": "Figma",
+      "email": "figma@example.org",
+      "subject": "A fresh set of ideas",
+      "snippet": "Your weekly design inspiration is here.",
+      "labels": [
+        "newsletter"
+      ],
+      "account": "work",
+      "count": 1,
+      "time": "Yesterday",
+      "unread": false,
+      "starred": false,
+      "archived": false,
+      "trash": false,
+      "date": "2026-09-13",
+      "messages": [
+        {
+          "sender": "Figma",
+          "time": "Yesterday",
+          "body": "Your weekly design inspiration is here.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nFigma",
+          "id": "thread-17-message-0",
+          "from": "Figma <figma@example.org>",
+          "fromEmail": "figma@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2026-09-13T08:15:00-04:00",
+          "messageId": "<thread-17.0@sample.omadash.local>"
+        }
+      ]
+    },
+    {
+      "id": "thread-18",
+      "sender": "Maya Chen",
+      "email": "maya.chen@example.org",
+      "subject": "Our first product sketch",
+      "snippet": "The original notes from when we started. Keeping this thread for the memories.",
+      "labels": [
+        "important"
+      ],
+      "account": "work",
+      "count": 3,
+      "time": "Jun 2021",
+      "unread": false,
+      "starred": false,
+      "archived": true,
+      "trash": false,
+      "date": "2021-06-18",
+      "messages": [
+        {
+          "sender": "Maya Chen",
+          "time": "9:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-18-message-0",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [
+            "jordan@example.org"
+          ],
+          "bcc": null,
+          "replyTo": "project@example.org",
+          "date": "2021-06-18T08:15:00-04:00",
+          "messageId": "<thread-18.0@sample.omadash.local>"
+        },
+        {
+          "sender": "Alex Morgan",
+          "time": "8:15",
+          "body": "Thanks for sharing this. I’ll take a closer look and get back to you.\n\nLooking forward to the next step.",
+          "id": "thread-18-message-1",
+          "from": "Alex Morgan <alex@northstar.example>",
+          "fromEmail": "alex@northstar.example",
+          "to": [
+            "maya.chen@example.org"
+          ],
+          "cc": [],
+          "bcc": [
+            "archive@example.org"
+          ],
+          "replyTo": "",
+          "date": "2021-06-18T09:15:00-04:00",
+          "messageId": "<thread-18.1@sample.omadash.local>"
+        },
+        {
+          "sender": "Maya Chen",
+          "time": "Jun 2021",
+          "body": "The original notes from when we started. Keeping this thread for the memories.\n\nI’ve put the key points below so we can keep this moving:\n\n• Start with the experience that matters most.\n• Make the next step clear and easy.\n• Leave room to learn from real use.\n\nLet me know what you think.\n\nMaya",
+          "id": "thread-18-message-2",
+          "from": "Maya Chen <maya.chen@example.org>",
+          "fromEmail": "maya.chen@example.org",
+          "to": [
+            "alex@northstar.example"
+          ],
+          "cc": [],
+          "bcc": null,
+          "replyTo": "",
+          "date": "2021-06-18T10:15:00-04:00",
+          "messageId": "<thread-18.2@sample.omadash.local>"
+        }
+      ]
+    }
+  ]
+}

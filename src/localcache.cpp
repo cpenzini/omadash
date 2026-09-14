@@ -1,0 +1,28 @@
+#include "localcache.h"
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QJsonDocument>
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QUuid>
+LocalCache::LocalCache(const QString&path){
+ if(path!=":memory:"){QDir().mkpath(QFileInfo(path).absolutePath());QFile::setPermissions(QFileInfo(path).absolutePath(),QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner);QFile f(path);if(!f.open(QIODevice::ReadWrite)||!f.setPermissions(QFile::ReadOwner|QFile::WriteOwner)){error="Cannot create private mail cache.";return;}f.close();}
+ db=QSqlDatabase::addDatabase("QSQLITE",QUuid::createUuid().toString());db.setDatabaseName(path);if(!db.open()){error=db.lastError().text();return;}
+ for(QString sql:{"PRAGMA journal_mode=WAL","PRAGMA busy_timeout=3000","CREATE TABLE IF NOT EXISTS threads(account TEXT,id TEXT,data BLOB,PRIMARY KEY(account,id))","CREATE TABLE IF NOT EXISTS drafts(id TEXT PRIMARY KEY,account TEXT,data BLOB)","CREATE TABLE IF NOT EXISTS meta(account TEXT,key TEXT,value TEXT,PRIMARY KEY(account,key))","CREATE VIRTUAL TABLE IF NOT EXISTS mail_fts USING fts5(account UNINDEXED,id UNINDEXED,content)"}){QSqlQuery q(db);if(!q.exec(sql)){error=q.lastError().text();db.close();break;}}
+}
+LocalCache::~LocalCache(){QString name=db.connectionName();db.close();db=QSqlDatabase();if(!name.isEmpty())QSqlDatabase::removeDatabase(name);}
+bool LocalCache::putThread(const QString&a,const QJsonObject&t){if(!ready()||t["id"].toString().isEmpty())return false;auto old=thread(a,t["id"].toString())["historyId"].toString(),next=t["historyId"].toString();if(!old.isEmpty()&&!next.isEmpty()&&(old.size()>next.size()||(old.size()==next.size()&&old>next)))return true;db.transaction();QSqlQuery q(db);q.prepare("INSERT OR REPLACE INTO threads VALUES(?,?,?)");q.addBindValue(a);q.addBindValue(t["id"].toString());q.addBindValue(QJsonDocument(t).toJson(QJsonDocument::Compact));if(!q.exec()){error=q.lastError().text();db.rollback();return false;}q.prepare("DELETE FROM mail_fts WHERE account=? AND id=?");q.addBindValue(a);q.addBindValue(t["id"].toString());if(!q.exec()){error=q.lastError().text();db.rollback();return false;}QString text=t["subject"].toString()+" "+t["sender"].toString()+" "+t["snippet"].toString();for(auto m:t["messages"].toArray())text+=" "+m.toObject()["body"].toString();q.prepare("INSERT INTO mail_fts VALUES(?,?,?)");q.addBindValue(a);q.addBindValue(t["id"].toString());q.addBindValue(text);if(!q.exec()){error=q.lastError().text();db.rollback();return false;}if(!db.commit()){error=db.lastError().text();return false;}return true;}
+void LocalCache::removeThread(const QString&a,const QString&id){for(auto table:{"threads","mail_fts"}){QSqlQuery q(db);q.prepare(QString("DELETE FROM %1 WHERE account=? AND id=?").arg(table));q.addBindValue(a);q.addBindValue(id);q.exec();}}
+QJsonArray LocalCache::threads(const QString&a)const{QJsonArray out;QSqlQuery q(db);q.prepare("SELECT data FROM threads WHERE account=? ORDER BY json_extract(data,'$.date') DESC");q.addBindValue(a);q.exec();while(q.next())out.append(QJsonDocument::fromJson(q.value(0).toByteArray()).object());return out;}
+QJsonObject LocalCache::thread(const QString&a,const QString&id)const{QSqlQuery q(db);q.prepare("SELECT data FROM threads WHERE account=? AND id=?");q.addBindValue(a);q.addBindValue(id);q.exec();return q.next()?QJsonDocument::fromJson(q.value(0).toByteArray()).object():QJsonObject();}
+QJsonArray LocalCache::search(const QString&a,const QString&term)const{QJsonArray out;QString escaped=term;escaped.replace('"',"\"\"");QSqlQuery q(db);q.prepare("SELECT threads.data FROM mail_fts JOIN threads ON threads.account=mail_fts.account AND threads.id=mail_fts.id WHERE mail_fts MATCH ? AND mail_fts.account=? ORDER BY rank LIMIT 200");q.addBindValue("\""+escaped+"\"*");q.addBindValue(a);if(!q.exec())return out;while(q.next())out.append(QJsonDocument::fromJson(q.value(0).toByteArray()).object());return out;}
+bool LocalCache::putDraft(const QString&id,const QJsonObject&d){QSqlQuery q(db);q.prepare("INSERT OR REPLACE INTO drafts VALUES(?,?,?)");q.addBindValue(id);q.addBindValue(d["account"].toString());q.addBindValue(QJsonDocument(d).toJson(QJsonDocument::Compact));if(!q.exec()){error=q.lastError().text();return false;}return true;}
+void LocalCache::removeDraft(const QString&id){QSqlQuery q(db);q.prepare("DELETE FROM drafts WHERE id=?");q.addBindValue(id);q.exec();}
+QJsonObject LocalCache::drafts()const{QJsonObject out;QSqlQuery q("SELECT id,data FROM drafts",db);while(q.next())out[q.value(0).toString()]=QJsonDocument::fromJson(q.value(1).toByteArray()).object();return out;}
+void LocalCache::setMeta(const QString&a,const QString&key,const QString&value){QSqlQuery q(db);q.prepare("INSERT OR REPLACE INTO meta VALUES(?,?,?)");q.addBindValue(a);q.addBindValue(key);q.addBindValue(value);q.exec();}
+QString LocalCache::meta(const QString&a,const QString&key)const{QSqlQuery q(db);q.prepare("SELECT value FROM meta WHERE account=? AND key=?");q.addBindValue(a);q.addBindValue(key);q.exec();return q.next()?q.value(0).toString():QString();}
+QStringList LocalCache::accounts()const{QStringList out;QSqlQuery q("SELECT account FROM meta WHERE key='remember' AND value='1'",db);while(q.next())out<<q.value(0).toString();return out;}
+void LocalCache::forget(const QString&a){for(auto table:{"threads","mail_fts","meta"}){QSqlQuery q(db);q.prepare(QString("DELETE FROM %1 WHERE account=?").arg(table));q.addBindValue(a);q.exec();}}
+
+void LocalCache::clearThreads(const QString&a){for(auto table:{"threads","mail_fts"}){QSqlQuery q(db);q.prepare(QString("DELETE FROM %1 WHERE account=?").arg(table));q.addBindValue(a);q.exec();}}

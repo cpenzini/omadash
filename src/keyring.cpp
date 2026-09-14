@@ -1,0 +1,7 @@
+#include "keyring.h"
+#include <QProcess>
+#include <QTimer>
+void Keyring::run(const QStringList&args,const QByteArray&input,Done done){auto*p=new QProcess(this);auto*timer=new QTimer(p);timer->setSingleShot(true);connect(timer,&QTimer::timeout,p,[p]{p->kill();});connect(p,&QProcess::errorOccurred,p,[p,done](QProcess::ProcessError e){if(e==QProcess::FailedToStart){done({},"Linux keyring helper is unavailable. Install secret-tool to remember accounts.");p->deleteLater();}});connect(p,qOverload<int,QProcess::ExitStatus>(&QProcess::finished),p,[p,done](int code,QProcess::ExitStatus status){QByteArray value=p->readAllStandardOutput();if(value.endsWith('\n'))value.chop(1);done(code==0?value:QByteArray(),code==0&&status==QProcess::NormalExit?QString():"Linux keyring is locked or unavailable. Unlock it and reconnect to remember this account.");p->deleteLater();});connect(p,&QProcess::started,p,[p,input]{if(!input.isEmpty())p->write(input);p->closeWriteChannel();});p->start("secret-tool",args);timer->start(45000);}
+void Keyring::read(const QString&a,Done done){run({"lookup","application","omadash","account",a},{},done);}
+void Keyring::write(const QString&a,const QByteArray&value,Done done){run({"store","--label=Omadash Google account","application","omadash","account",a},value,done);}
+void Keyring::remove(const QString&a,Done done){run({"clear","application","omadash","account",a},{},done);}
