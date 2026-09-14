@@ -4,6 +4,28 @@ Date: September 13, 2026
 Status: Initial product definition following interactive discovery
 Product name: Omadash
 
+## Interface screenshots
+
+Actual native preview 06 screenshots using fictional sample messages and accounts. These illustrate the current implementation; the PRD defines the full release target. Appearance follows the active theme, with the light fallback shown here.
+
+### Inbox
+
+![Omadash inbox interface](images/inbox.png)
+
+One row per conversation, split tabs, blue unread indicators, and keyboard selection.
+
+### Email reader
+
+![Omadash email reader interface](images/html-reader.png)
+
+Individual messages remain selectable within a conversation, with formatted HTML displayed in the main workspace.
+
+### Compose and reply
+
+![Omadash compose and reply interface](images/compose.png)
+
+Full-workspace composition with To/Cc/Bcc, selected-message reply context, and attachment controls.
+
 ## 1. Product intent
 
 Omadash is a fast, keyboard-first email client for high-performing professionals in the Omarchy community: founders, executives, developers, and other technology professionals who want to accelerate inbox management and daily workflows.

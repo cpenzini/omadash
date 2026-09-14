@@ -18,6 +18,28 @@ Designed for high-performing professionals, founders, executives, and technical 
 - Private SQLite mail cache, full-text index, background history indexing, and incremental synchronization.
 - A docked, read-only primary Google Calendar and colors from the active Omarchy theme.
 
+## Interface screenshots
+
+Actual native preview 06 screenshots using fictional sample messages and accounts. These illustrate the current implementation; the PRD defines the full release target. Appearance follows the active theme, with the light fallback shown here.
+
+### Inbox
+
+![Omadash inbox interface](docs/images/inbox.png)
+
+One row per conversation, split tabs, blue unread indicators, and keyboard selection.
+
+### Email reader
+
+![Omadash email reader interface](docs/images/html-reader.png)
+
+Individual messages remain selectable within a conversation, with formatted HTML displayed in the main workspace.
+
+### Compose and reply
+
+![Omadash compose and reply interface](docs/images/compose.png)
+
+Full-workspace composition with To/Cc/Bcc, selected-message reply context, and attachment controls.
+
 ## Build and launch
 
 Requires Linux, a C++20 compiler, CMake 3.21+, Qt 6.6+ with Widgets, Network, SQL/SQLite, Test, WebEngineWidgets and PdfWidgets, plus `secret-tool` and a working Secret Service keyring to remember accounts. Tested with Qt 6.11.2 on this development machine.
