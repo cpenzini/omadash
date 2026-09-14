@@ -27,8 +27,9 @@ QString EmailView::document(const QString&html,bool images){QString csp="default
 html {width:100%!important;min-width:0!important;box-sizing:border-box}
 body {width:auto!important;max-width:none!important;min-width:0!important;margin:8px!important;overflow-wrap:anywhere!important}
 body div,body section,body article,body center {min-width:0!important;max-width:100%!important;box-sizing:border-box}
-body>div,body>section,body>article,body>center,body div[style*="max-width"],body div[style*="width:"] {width:auto!important;max-width:none!important}
-table {width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;box-sizing:border-box}
+body>div,body>section,body>article,body>center {width:auto!important;max-width:none!important}
+table {max-width:100%!important;min-width:0!important;box-sizing:border-box}
+body>table,body>div>table {width:100%!important;table-layout:fixed!important}
 td,th {min-width:0!important;overflow-wrap:anywhere!important}
 img {max-width:100%!important;height:auto!important;box-sizing:border-box}
 pre {white-space:pre-wrap!important;overflow-wrap:anywhere!important}

@@ -38,7 +38,7 @@ std::unique_ptr<LocalCache> cache;Keyring*keyring=nullptr;QMap<QString,MailSync*
  QString liveEmail,pageToken,loadedQuery;QJsonArray sampleAccounts,sampleThreads,sampleSplits;QJsonObject sampleDrafts;
  QPushButton*moreButton=nullptr;QWidget*signInControls=nullptr;
  void loadMessageAssets(int thread,int message);
- void googleSetup();void connectGoogle(bool modify=true);void markUnread();void enterGoogle();void leaveGoogle();void loadGoogle(bool more=false);void executeSearch();void loadCalendar();
+ void googleSetup();void connectGoogle(bool modify=true,bool current=false);void markUnread();void enterGoogle();void leaveGoogle();void loadGoogle(bool more=false);void executeSearch();void loadCalendar();
  QString account="all",split="important",view="inbox",query,draftId,sequence;
  bool dark=false,calendarVisible=false;int threadIndex=-1,messageIndex=0;QVector<int> rows;QSet<int> expanded,headers,plainMessages;QVector<Context> navigation;
  QListWidget*inbox=nullptr;QTabBar*tabs=nullptr,*accountTabs=nullptr;QLabel*count=nullptr,*heading=nullptr,*status=nullptr;QPushButton*accountButton=nullptr;QLineEdit*searchInput=nullptr;QLabel*searchError=nullptr;QWidget*searchBar=nullptr;QStackedWidget*pages=nullptr;QWidget*inboxPage=nullptr,*threadPage=nullptr,*composePage=nullptr;QScrollArea*threadScroll=nullptr;QVector<QFrame*>cards;QFrame*calendar=nullptr,*commandPanel=nullptr;QVBoxLayout*calendarLayout=nullptr,*commandLayout=nullptr,*threadLayout=nullptr,*composeLayout=nullptr;QLineEdit*toEdit=nullptr,*ccEdit=nullptr,*bccEdit=nullptr,*subjectEdit=nullptr;QTextEdit*bodyEdit=nullptr;QComboBox*fromEdit=nullptr;QTimer*saveTimer=nullptr;QDate calendarDate=QDate(2026,9,14);bool filling=false;

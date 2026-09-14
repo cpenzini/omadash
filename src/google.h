@@ -27,6 +27,7 @@ bool connected()const{return !accessToken.isEmpty()||!refreshToken.isEmpty();}
  virtual void mutate(const QString&method,const QString&path,const QJsonObject&,Done);
  void ensureToken(Done);
 
+ static QString actionError(int status,const QJsonObject& response);
  static QStringList scopes();
  static QString challenge(const QString& verifier);
  static QJsonObject normalizeThread(const QJsonObject& data,const QString& account);
