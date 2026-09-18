@@ -18,6 +18,18 @@ Designed for high-performing professionals, founders, executives, and technical 
 - Private SQLite mail cache, full-text index, background history indexing, and incremental synchronization.
 - A docked, read-only primary Google Calendar and colors from the active Omarchy theme.
 
+## Help build Omadash
+
+We are looking for **five early testers and one or two C++/Qt contributors**. Start in the sample workspace; connecting Gmail is optional. Live sending remains under investigation, and formatted reading needs more real-world validation.
+
+Read the [contribution guide](CONTRIBUTING.md), try the [tester checklist](docs/community/TESTING.md), browse [starter issues](https://github.com/cpenzini/omadash/labels/good%20first%20issue), or introduce yourself in [Discussions](https://github.com/cpenzini/omadash/discussions). The [roadmap](docs/ROADMAP.md) explains priorities.
+
+## Watch the sample walkthrough
+
+[![48-second Omadash sample walkthrough](docs/media/omadash-demo.gif)](https://github.com/cpenzini/omadash/releases/download/v0.1.0-preview.6/omadash-demo.mp4)
+
+[Watch or download the 48-second video](https://github.com/cpenzini/omadash/releases/download/v0.1.0-preview.6/omadash-demo.mp4). Fictional accounts and mail; no real messages are sent. [Reproduce the demo](docs/community/DEMO.md).
+
 ## Interface screenshots
 
 Actual native preview 06 screenshots using fictional sample messages and accounts. These illustrate the current implementation; the PRD defines the full release target. Appearance follows the active theme, with the light fallback shown here.

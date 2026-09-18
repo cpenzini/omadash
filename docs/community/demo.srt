@@ -1,0 +1,40 @@
+1
+00:00:00,000 --> 00:00:05,999
+Omadash · Native email for Omarchy
+Early preview · Fictional sample mail
+
+2
+00:00:06,000 --> 00:00:10,999
+Move with J/K · Archive with E · Undo with Z
+
+3
+00:00:11,000 --> 00:00:14,999
+Split inboxes · Tab moves between views
+
+4
+00:00:15,000 --> 00:00:20,999
+Switch account context with Alt+1 / Alt+2
+Sample accounts shown
+
+5
+00:00:21,000 --> 00:00:24,999
+Search stays in the main workspace
+Choose a result, then press Enter
+
+6
+00:00:25,000 --> 00:00:30,999
+Read a conversation · Select an individual message
+
+7
+00:00:31,000 --> 00:00:38,999
+Reply to the selected message
+Draft only · No email is sent
+
+8
+00:00:39,000 --> 00:00:43,999
+Calendar stays beside your inbox
+
+9
+00:00:44,000 --> 00:00:48,000
+Help build Omadash · Testers and C++/Qt contributors welcome
+github.com/cpenzini/omadash · Live sending still under investigation

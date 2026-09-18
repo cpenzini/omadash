@@ -1,0 +1,22 @@
+name: Feature request
+description: Describe a workflow improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What workflow is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: Include keyboard interaction and how it fits in the main window.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and alternatives
+      description: Link related roadmap items or discussions if available.

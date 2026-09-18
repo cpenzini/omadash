@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible problem with Omadash.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Use fictional or redacted examples. Never attach OAuth JSON, tokens, private mail, or the .state directory.
+  - type: input
+    id: version
+    attributes:
+      label: Build and environment
+      description: Commit, Qt version, and Omarchy version if known.
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Workspace
+      options: [Sample workspace, Connected Google account, Both]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and exact error
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional screenshot or synthetic reproduction
+      description: Remove personal data. For HTML issues, attach a minimal fictional example.

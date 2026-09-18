@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and early tester introductions
+    url: https://github.com/cpenzini/omadash/discussions
+    about: Ask questions, introduce yourself, or discuss larger ideas.
